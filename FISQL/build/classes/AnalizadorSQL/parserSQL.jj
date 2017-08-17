@@ -1,0 +1,164 @@
+PARSER_BEGIN(parserSQL)
+//package AnalizadorSQL;
+
+public class parserSQL
+{
+
+	public static void main(String[] args)throws ParseException
+	{
+		try
+		{
+			parserSQL analizador = new parserSQL(System.in);
+			analizador.INICIO();
+			System.out.println("Se ha compilado con exito");
+		}
+		catch(ParseException e)
+		{
+			System.out.println(e.getMessage());
+			System.out.println("Se han encontrado errores");
+		}
+	}
+
+}
+
+PARSER_END(parserSQL)
+
+TOKEN:
+{
+		<validar: "validar">
+	|	<login: "login">
+	| 	<comando: "comando">
+	| 	<password: "password">
+	| 	<paquete: "paquete">
+	| 	<instruccion: "instruccion">
+}
+TOKEN:
+{
+		<text: "text">
+	| 	<integer: "integer">
+	|	<doble: "double">
+	|	<bool: "bool">
+	|	<date: "date">
+	|	<dateTime: "dateTime">
+}
+TOKEN:
+{
+		<crear: "crear">
+	| 	<tabla: "tabla">
+	|	<objeto: "objeto">
+	|	<procedimiento: "procedimiento">
+	|	<funcion: "funcion">
+	|	<retorno: "retorno">
+	|	<usuario: "usuario">
+	|	<usar: "usar">
+	|	<alterar: "alterar">
+	|	<eliminar: "eliminar">
+	|	<insertar: "insertar">
+	|	<actualizar: "actualizar">
+	|	<borrar: "borrar">
+	|	<seleccionar: "seleccionar">
+	|	<otorgar: "otorgar">
+	|	<denegar: "denegar">
+	|	<declarar: "declarar">
+	|	<si: "si">
+	|	<sino: "sino">
+	|	<selecciona: "selecciona">
+	|	<caso: "caso">
+	|	<defecto: "defecto">
+	|	<para: "para">
+	|	<mientras: "mientras">
+	|	<detener: "detener">
+	|	<imprimir: "imprimir">
+	|	<fecha: "fecha">
+	|	<contar: "contar">
+	|	<backup: "backup">
+	|	<usqldump: "usqldump">
+	|	<completo: "completo">
+	|	<restaurar: "restaurar">
+}
+
+TOKEN:
+{
+		<parentesisA: "(">
+	| 	<parentesisC: ")">
+	|	<llaveA: "{">
+	|	<llaveC: "}">
+	|	<corcheteA: "[">
+	|	<corcheteC: "]">
+	|	<puntoComa: ";">
+	|	<dosPuntos: ":">
+	|	<mas: "+">
+	|	<menos: "-">
+	|	<por: "*">
+	|	<div: "/">
+	|	<potencia: "^">
+	|	<igualIgual: "==">
+	|	<diferente: "!=">
+	|	<mayor: ">">
+	|	<menor: "<">
+	|	<mayorIgual: ">=">
+	|	<menorIgual: "<=">
+	|	<or: "||">
+	|	<and: "&&">
+	|	<not: "!">
+}
+TOKEN:
+{
+		<numero: (["0"-"9"])+ >
+	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+}
+SKIP:
+{
+	" "| "\r\n" | "\t"
+}
+
+
+
+void INICIO():
+{}
+{
+	PAQUETE()<EOF>
+		
+}
+void PAQUETE():
+{}
+{
+		LOGIN()
+	|	<corcheteA>ATRIBUTO()<corcheteC>
+}
+void LOGIN():
+{}
+{
+		<validar><dosPuntos><numero>
+}
+void ATRIBUTO():
+{}
+{
+		<paquete>
+	|	<instruccion>SENTENCIA()
+		
+}
+
+
+
+
+void SENTENCIA():{}
+{
+		S()SENTENCIAP()
+}
+void SENTENCIAP():{}
+{
+		S()SENTENCIAP()
+	|	{}
+}
+void S():{}
+{
+	DDL()
+}
+void DDL():{}
+{
+	<crear><id><id><puntoComa>
+}
+
+
+

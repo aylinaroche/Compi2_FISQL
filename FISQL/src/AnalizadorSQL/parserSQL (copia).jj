@@ -1,0 +1,57 @@
+PARSER_BEGIN(parserSQL)
+package AnalizadorSQL;
+
+class parserSQL
+{
+/*
+	public static void main(String[] args)throws ParseException
+	{
+		try
+		{
+			parserSQL analizador = new parserSQL(System.in);
+			analizador.Programa();
+			System.out.println("Se ha compilado con exito");
+		}
+		catch(ParseException e)
+		{
+			System.out.println(e.getMessage());
+			System.out.println("Se han encontrado errores");
+		}
+	}
+	
+	public int numero = 5;
+*/
+}
+
+
+PARSER_END(parserSQL)
+
+TOKEN:
+{
+		<uno: "1">{}
+	|	<cero: "0">{}
+
+}
+
+void Programa():
+{}
+{
+	L()<EOF>		
+}
+void L():
+{}
+{
+	bin()LL()
+}
+void LL():
+{}
+{
+	bin() LL(){}
+	| {return;}
+}
+void bin():
+{}
+{
+		<cero>
+	|	<uno>
+}
