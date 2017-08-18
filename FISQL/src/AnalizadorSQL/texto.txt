@@ -1,1 +1,18 @@
-[paquete ]
+crear base_datos Proyecto1db;
+
+crear tabla Estudiante (INTEGER id Llave_Primaria Autoincrementable, TEXT Nombre No Nulo, DATE fh_nac No Nulo, BOOL
+trabaja);
+
+crear objeto Empresa (INTEGER codigo, TEXT nombre, TEXT telefono);
+
+CREAR PROCEDIMIENTO set_Salario (DOUBLE @salario, DOUBLE
+@comision, INTEGER @codigo){
+	ACTUALIZAR TABLA trabajador (salario) VALORES (@salario+@comision) DONDE codigo == @codigo;
+}
+
+CREAR FUNCION suma (INTEGER @var1, INTEGER @var2) INTEGER{
+	RETORNO @var1 * @var2;
+}
+
+Set_Salario(8500.00,964.50);
+@var_ejemplo = suma(10,15);

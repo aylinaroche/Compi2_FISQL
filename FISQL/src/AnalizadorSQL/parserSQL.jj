@@ -1,9 +1,11 @@
+options {
+  IGNORE_CASE = true;
+}
 PARSER_BEGIN(parserSQL)
 //package AnalizadorSQL;
 
 public class parserSQL
 {
-
 	public static void main(String[] args)throws ParseException
 	{
 		try
@@ -18,7 +20,6 @@ public class parserSQL
 			System.out.println("Se han encontrado errores");
 		}
 	}
-
 }
 
 PARSER_END(parserSQL)
@@ -44,6 +45,7 @@ TOKEN:
 TOKEN:
 {
 		<crear: "crear">
+	|	<base_datos: "base_datos">
 	| 	<tabla: "tabla">
 	|	<objeto: "objeto">
 	|	<procedimiento: "procedimiento">
@@ -74,7 +76,26 @@ TOKEN:
 	|	<backup: "backup">
 	|	<usqldump: "usqldump">
 	|	<completo: "completo">
-	|	<restaurar: "restaurar">
+	|	<nulo: "nulo">
+	|	<no: "no">
+	|	<autoincrementable: "autoincrementable">
+	|	<llave_primaria: "llave_primaria">
+	|	<llave_foranea: "llave_foranea">
+	|	<agregar: "agregar">
+	|	<quitar: "quitar">
+	|	<cambiar: "cambiar">
+	|	<user: "user">
+	|	<verdadero: "verdadero">
+	|	<falso: "falso">
+	|	<en: "en">
+	|	<valores: "valores">
+	|	<donde: "donde">
+	|	<ordenar: "ordenar">
+	|	<permisos: "permisos">
+	|	<asc: "asc">
+	|	<desc: "desc">
+	|	<ppor: "por">
+	|	<de: "de">
 }
 
 TOKEN:
@@ -101,15 +122,19 @@ TOKEN:
 	|	<or: "||">
 	|	<and: "&&">
 	|	<not: "!">
+	|	<coma: ",">
+	|	<igual: "=">
 }
 TOKEN:
 {
 		<numero: (["0"-"9"])+ >
 	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+	|	<idVar: ["@"]["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+	|	<cadena: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
 }
 SKIP:
 {
-	" "| "\r\n" | "\t"
+	" "| "\r\n" | "\t" | "\n"
 }
 
 
@@ -125,6 +150,7 @@ void PAQUETE():
 {
 		LOGIN()
 	|	<corcheteA>ATRIBUTO()<corcheteC>
+	|	SENTENCIA()
 }
 void LOGIN():
 {}
@@ -153,12 +179,227 @@ void SENTENCIAP():{}
 }
 void S():{}
 {
-	DDL()
+		DDL()
+	|	DML()
+	|	DCL()
+}
+void TIPO():{}
+{
+		<text>
+	|	<bool>
+	|	<integer>
+	|	<doble>
+	|	<date>
+	|	<dateTime>
+}
+void COMPLEMENTO():{}
+{
+		<nulo>COMPLEMENTOP()
+	|	<no><nulo>COMPLEMENTOP()
+	|	<autoincrementable>COMPLEMENTOP()
+	|	<llave_primaria>COMPLEMENTOP()
+	| 	<llave_foranea>COMPLEMENTOP()
+	|	{}
+}
+void COMPLEMENTOP():{}
+{
+		<nulo>
+	|	<no><nulo>
+	|	<autoincrementable>
+	|	<llave_primaria>
+	| 	<llave_foranea>
+	|	{}
 }
 void DDL():{}
 {
-	<crear><id><id><puntoComa>
+		<crear>CREAR()
+	|	<usar><id><puntoComa>
+	|	<alterar>ALTERAR()
+	|	<eliminar>ELIMINAR()
+}
+void CREAR():{}
+{
+		<base_datos><id><puntoComa>
+	|	<tabla><id><parentesisA>PARAMETROS()<parentesisC><puntoComa>
+	|	<objeto><id><parentesisA>PARAMETROS()<parentesisC><puntoComa>
+	| 	<procedimiento><id><parentesisA>PARAMETROSVAR()<parentesisC><llaveA><llaveC>
+	| 	<funcion><id><parentesisA>PARAMETROSVAR()<parentesisC><llaveA><llaveC>
+}
+void PARAMETROS():{}
+{
+		TIPO()<id>COMPLEMENTO()PARAMETROSP()
+}
+void PARAMETROSP():{}
+{
+		<coma>TIPO()<id>COMPLEMENTO()PARAMETROSP()
+	|	{}
+}
+void PARAMETROSVAR():{}
+{
+		TIPO()<idVar>PARAMETROSVARP()
+}
+void PARAMETROSVARP():{}
+{
+		<coma>TIPO()<idVar>PARAMETROSVARP()
+	|	{}
+}
+void ALTERAR():{}
+{
+		<tabla><id>TIPOALTERAR()<parentesisA>PARAMETROS()<parentesisC><puntoComa>
+	|	<objeto><id>TIPOALTERAR()<parentesisA>PARAMETROS()<parentesisC><puntoComa>
+	|	<usuario><id><cambiar><password><igual><cadena>
+}
+void TIPOALTERAR():{}
+{
+		<agregar>
+	|	<quitar>
+}
+void ELIMINAR():{}
+{
+		<tabla><id><puntoComa>
+	|	<base_datos><id><puntoComa>
+	|	<objeto><id><puntoComa>
+	|	<user><id><puntoComa>
+}
+void DML():{}
+{
+		<insertar><en><tabla><id><parentesisA>LISTACAMPOS()<parentesisC><valores><parentesisA>LISTAVALORES()<parentesisC><puntoComa>
+	|	<actualizar><tabla><id><parentesisA>LISTACAMPOS()<parentesisC><valores><parentesisA>LISTAVALORES()<parentesisC>DONDE()<puntoComa>
+	|	<borrar><en><tabla><id>DONDE()<puntoComa>
+	|	<seleccionar>SELECCIONAR()
+}
+void LISTACAMPOS():{}
+{
+		<id>LISTACAMPOSP()
+}
+void LISTACAMPOSP():{}
+{
+		<coma><id>LISTACAMPOSP()
+	|	{}
+}
+void LISTAVALORES():{}
+{
+		OPERACION()LISTAVALORESP()
+}
+void LISTAVALORESP():{}
+{
+		<coma>OPERACION()LISTAVALORESP()
+	|	{}
+}
+void DONDE():{}
+{
+		<donde><id><igual>OPERACION()DONDEP()
+	|	{}
+}
+void DONDEP():{}
+{
+		<and><id><igual>OPERACION()DONDEP()
+	|	<or><id><igual>OPERACION()DONDEP()
+	|	{}
+}
+void SELECCIONAR():{}
+{
+		LISTACAMPOS()<de><id>DONDE()ORDENAR()
+	|   <por><de><id>DONDE()ORDENAR()
+}
+void ORDENAR():{}
+{
+		<ordenar><ppor><id>TIPOORDENAR()
+}
+void TIPOORDENAR():{}
+{
+		<asc>
+	|	<desc>
+	| 	{}
+}
+void DCL():{}
+{
+		<otorgar><permisos><id><coma>OPERACION()
+	|	<denegar><permisos><id>
+}
+void SSL():{}
+{
+		<declarar>DECLARAR()<puntoComa>
+}
+void LISTAVARIABLES():{}
+{
+		<idVar>LISTAVARIABLESP()
+}
+void LISTAVARIABLESP():{}
+{
+		<coma><idVar>LISTAVARIABLESP()
+	|	{}
+}
+void DECLARAR():{}
+{
+		LISTAVARIABLES()TIPO()<igual>OPERACION()
+	|	<id><id>
+}
+void INSTRUCCION():{}
+{
+		ASIGNACION()
+	|	SI()
+	|	SELECCIONA()
+}
+void ASIGNACION():{}
+{
+		<idVar><igual>OPERACION()
+}
+void SI():{}
+{
+		<si><parentesisA>OPERACION()<parentesisC><llaveA>INSTRUCCION()<llaveC>SINO()
+}
+void SINO():{}
+{
+		<sino><llaveA>INSTRUCCION()<llaveC>SINO()
+}
+void SELECCIONA():{}
+{
+		<selecciona><parentesisA>OPERACION()<parentesisC><llaveA>CASO()<llaveC>
+}
+void CASO():{}
+{
+		<caso><dosPuntos>INSTRUCCION()CASOP()		
+}
+void CASOP():{}
+{
+		<caso><dosPuntos>CASOP()
+	| 	{}
 }
 
 
 
+
+void OPERACION():{}
+{
+		E()
+}
+void E():{}
+{
+		F()EP()
+}
+void EP():{}
+{
+		<mas>F()EP()
+		<menos>F()EP()
+	|  	{}
+
+}
+void F():{}
+{
+		G()FP()
+}
+void FP():{}
+{
+		<por>G()FP()
+		<div>G()FP()
+	|  	{}
+
+}
+void G():{}
+{
+		<numero>
+		<id>
+		<cadena>
+	| 	<parentesisA>E()<parentesisC>
+}

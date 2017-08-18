@@ -35,115 +35,163 @@ public interface parserSQLConstants {
   /** RegularExpression Id. */
   int crear = 13;
   /** RegularExpression Id. */
-  int tabla = 14;
+  int base_datos = 14;
   /** RegularExpression Id. */
-  int objeto = 15;
+  int tabla = 15;
   /** RegularExpression Id. */
-  int procedimiento = 16;
+  int objeto = 16;
   /** RegularExpression Id. */
-  int funcion = 17;
+  int procedimiento = 17;
   /** RegularExpression Id. */
-  int retorno = 18;
+  int funcion = 18;
   /** RegularExpression Id. */
-  int usuario = 19;
+  int retorno = 19;
   /** RegularExpression Id. */
-  int usar = 20;
+  int usuario = 20;
   /** RegularExpression Id. */
-  int alterar = 21;
+  int usar = 21;
   /** RegularExpression Id. */
-  int eliminar = 22;
+  int alterar = 22;
   /** RegularExpression Id. */
-  int insertar = 23;
+  int eliminar = 23;
   /** RegularExpression Id. */
-  int actualizar = 24;
+  int insertar = 24;
   /** RegularExpression Id. */
-  int borrar = 25;
+  int actualizar = 25;
   /** RegularExpression Id. */
-  int seleccionar = 26;
+  int borrar = 26;
   /** RegularExpression Id. */
-  int otorgar = 27;
+  int seleccionar = 27;
   /** RegularExpression Id. */
-  int denegar = 28;
+  int otorgar = 28;
   /** RegularExpression Id. */
-  int declarar = 29;
+  int denegar = 29;
   /** RegularExpression Id. */
-  int si = 30;
+  int declarar = 30;
   /** RegularExpression Id. */
-  int sino = 31;
+  int si = 31;
   /** RegularExpression Id. */
-  int selecciona = 32;
+  int sino = 32;
   /** RegularExpression Id. */
-  int caso = 33;
+  int selecciona = 33;
   /** RegularExpression Id. */
-  int defecto = 34;
+  int caso = 34;
   /** RegularExpression Id. */
-  int para = 35;
+  int defecto = 35;
   /** RegularExpression Id. */
-  int mientras = 36;
+  int para = 36;
   /** RegularExpression Id. */
-  int detener = 37;
+  int mientras = 37;
   /** RegularExpression Id. */
-  int imprimir = 38;
+  int detener = 38;
   /** RegularExpression Id. */
-  int fecha = 39;
+  int imprimir = 39;
   /** RegularExpression Id. */
-  int contar = 40;
+  int fecha = 40;
   /** RegularExpression Id. */
-  int backup = 41;
+  int contar = 41;
   /** RegularExpression Id. */
-  int usqldump = 42;
+  int backup = 42;
   /** RegularExpression Id. */
-  int completo = 43;
+  int usqldump = 43;
   /** RegularExpression Id. */
-  int restaurar = 44;
+  int completo = 44;
   /** RegularExpression Id. */
-  int parentesisA = 45;
+  int nulo = 45;
   /** RegularExpression Id. */
-  int parentesisC = 46;
+  int no = 46;
   /** RegularExpression Id. */
-  int llaveA = 47;
+  int autoincrementable = 47;
   /** RegularExpression Id. */
-  int llaveC = 48;
+  int llave_primaria = 48;
   /** RegularExpression Id. */
-  int corcheteA = 49;
+  int llave_foranea = 49;
   /** RegularExpression Id. */
-  int corcheteC = 50;
+  int agregar = 50;
   /** RegularExpression Id. */
-  int puntoComa = 51;
+  int quitar = 51;
   /** RegularExpression Id. */
-  int dosPuntos = 52;
+  int cambiar = 52;
   /** RegularExpression Id. */
-  int mas = 53;
+  int user = 53;
   /** RegularExpression Id. */
-  int menos = 54;
+  int verdadero = 54;
   /** RegularExpression Id. */
-  int por = 55;
+  int falso = 55;
   /** RegularExpression Id. */
-  int div = 56;
+  int en = 56;
   /** RegularExpression Id. */
-  int potencia = 57;
+  int valores = 57;
   /** RegularExpression Id. */
-  int igualIgual = 58;
+  int donde = 58;
   /** RegularExpression Id. */
-  int diferente = 59;
+  int ordenar = 59;
   /** RegularExpression Id. */
-  int mayor = 60;
+  int permisos = 60;
   /** RegularExpression Id. */
-  int menor = 61;
+  int asc = 61;
   /** RegularExpression Id. */
-  int mayorIgual = 62;
+  int desc = 62;
   /** RegularExpression Id. */
-  int menorIgual = 63;
+  int ppor = 63;
   /** RegularExpression Id. */
-  int or = 64;
+  int de = 64;
   /** RegularExpression Id. */
-  int and = 65;
+  int parentesisA = 65;
   /** RegularExpression Id. */
-  int not = 66;
+  int parentesisC = 66;
   /** RegularExpression Id. */
-  int numero = 67;
+  int llaveA = 67;
   /** RegularExpression Id. */
-  int id = 68;
+  int llaveC = 68;
+  /** RegularExpression Id. */
+  int corcheteA = 69;
+  /** RegularExpression Id. */
+  int corcheteC = 70;
+  /** RegularExpression Id. */
+  int puntoComa = 71;
+  /** RegularExpression Id. */
+  int dosPuntos = 72;
+  /** RegularExpression Id. */
+  int mas = 73;
+  /** RegularExpression Id. */
+  int menos = 74;
+  /** RegularExpression Id. */
+  int por = 75;
+  /** RegularExpression Id. */
+  int div = 76;
+  /** RegularExpression Id. */
+  int potencia = 77;
+  /** RegularExpression Id. */
+  int igualIgual = 78;
+  /** RegularExpression Id. */
+  int diferente = 79;
+  /** RegularExpression Id. */
+  int mayor = 80;
+  /** RegularExpression Id. */
+  int menor = 81;
+  /** RegularExpression Id. */
+  int mayorIgual = 82;
+  /** RegularExpression Id. */
+  int menorIgual = 83;
+  /** RegularExpression Id. */
+  int or = 84;
+  /** RegularExpression Id. */
+  int and = 85;
+  /** RegularExpression Id. */
+  int not = 86;
+  /** RegularExpression Id. */
+  int coma = 87;
+  /** RegularExpression Id. */
+  int igual = 88;
+  /** RegularExpression Id. */
+  int numero = 89;
+  /** RegularExpression Id. */
+  int id = 90;
+  /** RegularExpression Id. */
+  int idVar = 91;
+  /** RegularExpression Id. */
+  int cadena = 92;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -164,6 +212,7 @@ public interface parserSQLConstants {
     "\"date\"",
     "\"dateTime\"",
     "\"crear\"",
+    "\"base_datos\"",
     "\"tabla\"",
     "\"objeto\"",
     "\"procedimiento\"",
@@ -194,7 +243,26 @@ public interface parserSQLConstants {
     "\"backup\"",
     "\"usqldump\"",
     "\"completo\"",
-    "\"restaurar\"",
+    "\"nulo\"",
+    "\"no\"",
+    "\"autoincrementable\"",
+    "\"llave_primaria\"",
+    "\"llave_foranea\"",
+    "\"agregar\"",
+    "\"quitar\"",
+    "\"cambiar\"",
+    "\"user\"",
+    "\"verdadero\"",
+    "\"falso\"",
+    "\"en\"",
+    "\"valores\"",
+    "\"donde\"",
+    "\"ordenar\"",
+    "\"permisos\"",
+    "\"asc\"",
+    "\"desc\"",
+    "\"por\"",
+    "\"de\"",
     "\"(\"",
     "\")\"",
     "\"{\"",
@@ -217,11 +285,16 @@ public interface parserSQLConstants {
     "\"||\"",
     "\"&&\"",
     "\"!\"",
+    "\",\"",
+    "\"=\"",
     "<numero>",
     "<id>",
+    "<idVar>",
+    "<cadena>",
     "\" \"",
     "\"\\r\\n\"",
     "\"\\t\"",
+    "\"\\n\"",
   };
 
 }
