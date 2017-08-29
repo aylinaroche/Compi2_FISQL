@@ -1,1 +1,113 @@
-[paquete ]
+crear base_datos Proyecto1db;
+
+crear tabla Estudiante (INTEGER id Llave_Primaria Autoincrementable, TEXT Nombre No Nulo, DATE fh_nac No Nulo, BOOL
+trabaja);
+
+crear objeto Empresa (INTEGER codigo, TEXT nombre, TEXT telefono);
+
+CREAR PROCEDIMIENTO set_Salario (DOUBLE @salario, DOUBLE
+@comision, INTEGER @codigo){
+	ACTUALIZAR TABLA trabajador (salario) VALORES (@salario);
+}
+
+CREAR FUNCION suma (INTEGER @var1, INTEGER @var2) INTEGER{
+	Set_Salario(8500.00,964.50);
+	@var_ejemplo = suma(10,15);
+	RETORNO @var1 * @var2;
+}
+
+USAR Proyecto1;
+
+ALTERAR TABLA Estudiante AGREGAR (INTEGER edad, TEXT direccion);
+ALTERAR TABLA Estudiante QUITAR trabaja;
+
+ALTERAR OBJETO empresa AGREGAR (INTEGER nit);
+ALTERAR OBJETO empresa QUITAR direccion, nit;
+
+ALTERAR USUARIO Admin CAMBIAR password = "1234";
+
+ELIMINAR TABLA estudiante;
+ELIMINAR BASE_DATOS Proyecto1;
+ELIMINAR OBJETO empresa;
+ELIMINAR USER usuario1;
+
+INSERTAR EN TABLA estudiante ("Jose Luis Figueroa", 10-10-1994,1);
+
+INSERTAR EN TABLA estudiante (Nombre, fh_nac) VALORES ("Jose Luis
+Figueroa", 10-10-1994);
+
+ACTUALIZAR TABLA estudiante (nombre, trabaja) VALORES ("Jose Luis
+Martinez Hernandez",1) DONDE nombre == "Jose Luis Martinez" &&
+trabaja == 0;
+ACTUALIZAR TABLA estudiante (nombre, trabaja) VALORES ("Carlos
+Enriquez",0);
+
+BORRAR EN TABLA estudiante DONDE nombre == "Jose Luis Martinez"
+&& trabaja == 0;
+BORRAR EN TABLA estudiante;
+
+SELECCIONAR nombre, fh_nac DE estudiante DONDE id > 10 ORDENAR POR
+fh_nac asc;
+SELECCIONAR * DE estudiante DONDE estudiante.id == 
+asignacion.id_estudiante;
+SELECCIONAR nombre, fh_nac DE estudiante DONDE id < 10;
+SELECCIONAR * DE estudiante;
+
+OTORGAR PERMISOS usuario1, Proyecto1.estudiante;
+OTORGAR PERMISOS usuario1, Proyecto1.*;
+
+DENEGAR PERMISOS usuario1, Proyecto1.estudiante;
+DENEGAR PERMISOS usuario1, Proyecto1.*;
+
+CREAR PROCEDIMIENTO set_Salario (DOUBLE @salario, DOUBLE
+@comision, INTEGER @codigo){
+
+	DECLARAR @variable1, @variable2 INTEGER = 23;
+	DECLARAR @ejemplo TEXT = "Hola mundo";
+	DECLARAR @empresa1 emp;
+
+	@a = 3 * 23;
+	@ejemplo = saludo("Hola");
+
+	@empresa1.nit = 87654321-0;
+
+	SI( @a < 10 ){
+		@b = 23;
+	}
+
+	SI( @a < 10 ){
+		@b = 23;
+	}SINO{
+		@b = 46;
+	}
+
+	SELECCIONA ( @a * 15 ){
+		CASO 10 :
+			@b = 23;
+		CASO 15 :
+			@b = 23;
+		DEFECTO :
+			@b = 23;
+	}
+
+	PARA(DECLARAR @a INTEGER = 10; @a > 0; --){
+		@b = 23;
+	}
+
+	MIENTRAS( @a < 10 ){
+		@a = @a + 1;
+		DETENER;
+	}
+
+	IMPRIMIR("Hola mundo");
+	@fecha = FECHA();
+	@fecha_h = FECHA_HORA();
+
+	BACKUP USQLDUMP Proyecto1 Proyecto1_backup;
+	BACKUP COMPLETO Proyecto1 Proyecto1_backup2;
+
+	RESTAURAR USQLDUMP "ruta_archivo";
+	RESTAURAR COMPLETO "/home/usuario/backups/backup_prueba.zip";
+	
+	CONTAR(<<SELECCIONAR * DE estudiante>>);
+}

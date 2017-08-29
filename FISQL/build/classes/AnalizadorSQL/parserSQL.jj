@@ -1,10 +1,34 @@
+options {
+  IGNORE_CASE = true;
+}
 PARSER_BEGIN(parserSQL)
-//package AnalizadorSQL;
+package AnalizadorSQL;
+import fisql.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class parserSQL
 {
+//se comenta esto
+        public static Nodo compilar(String cadena) throws ParseException {
+            Nodo nodo = null;
+            try {
+                InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
 
-	public static void main(String[] args)throws ParseException
+                parserSQL analizador = new parserSQL(stream);
+                nodo = analizador.INICIO();
+                System.out.println("Se ha compilado con exito");
+
+            } catch (ParseException e) {
+                System.out.println(e.getMessage());
+                System.out.println("Se han encontrado errores");
+            }
+            return nodo;
+        }
+
+/*
+	public static Nodo main(String[] args)throws ParseException
 	{
 		try
 		{
@@ -18,8 +42,10 @@ public class parserSQL
 			System.out.println("Se han encontrado errores");
 		}
 	}
-
+	*/
+//Se comenta esto
 }
+
 
 PARSER_END(parserSQL)
 
@@ -44,6 +70,7 @@ TOKEN:
 TOKEN:
 {
 		<crear: "crear">
+	|	<base_datos: "base_datos">
 	| 	<tabla: "tabla">
 	|	<objeto: "objeto">
 	|	<procedimiento: "procedimiento">
@@ -70,10 +97,31 @@ TOKEN:
 	|	<detener: "detener">
 	|	<imprimir: "imprimir">
 	|	<fecha: "fecha">
+	|	<fechaHora: "fecha_hora">
 	|	<contar: "contar">
 	|	<backup: "backup">
 	|	<usqldump: "usqldump">
 	|	<completo: "completo">
+	|	<nulo: "nulo">
+	|	<no: "no">
+	|	<autoincrementable: "autoincrementable">
+	|	<llave_primaria: "llave_primaria">
+	|	<llave_foranea: "llave_foranea">
+	|	<agregar: "agregar">
+	|	<quitar: "quitar">
+	|	<cambiar: "cambiar">
+	|	<user: "user">
+	|	<verdadero: "verdadero">
+	|	<falso: "falso">
+	|	<en: "en">
+	|	<valores: "valores">
+	|	<donde: "donde">
+	|	<ordenar: "ordenar">
+	|	<permisos: "permisos">
+	|	<asc: "asc">
+	|	<desc: "desc">
+	|	<ppor: "por">
+	|	<de: "de">
 	|	<restaurar: "restaurar">
 }
 
@@ -94,6 +142,8 @@ TOKEN:
 	|	<potencia: "^">
 	|	<igualIgual: "==">
 	|	<diferente: "!=">
+	|	<mayormayor: ">>">
+	|	<menormenor: "<<">
 	|	<mayor: ">">
 	|	<menor: "<">
 	|	<mayorIgual: ">=">
@@ -101,64 +151,1064 @@ TOKEN:
 	|	<or: "||">
 	|	<and: "&&">
 	|	<not: "!">
+	|	<coma: ",">
+	|	<igual: "=">
+	|	<punto: ".">
 }
 TOKEN:
 {
-		<numero: (["0"-"9"])+ >
+		<entero: (["0"-"9"])+ >
+	|	<decimal: (["0"-"9"])+"."(["0"-"9"])+ >
 	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+	|	<idVar: ["@"]["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+	|	<simbolo: "#"|"@"|"!"|"?"|"$"|"%"|"^"|"&"|"*"|"!"|"("|")"|"-"|"_"|"="|"<"|">"|"/"|"¿"|"¡"|"."|"["|"]">
+	|	<cadena: ("\"")(<entero>|<id>|<simbolo>|" "|"\t"|"\n")*("\"")>
+	|	<ffecha: (["0"-"9"]["0"-"9"]"-"["0"-"9"]["0"-"9"]"-"["0"-"9"]["0"-"9"]["0"-"9"]["0"-"9"])>
+	
 }
 SKIP:
 {
-	" "| "\r\n" | "\t"
+	" "| "\r\n" | "\t" | "\n" | "\r" | "\f"
+	|"\u00a0" 
+	|<comentarioSimple: "#" ( ~["\n","\r"] )* ("\n" | "\r" | "\r\n") >
+	|<comentarioMulti: "#" ( ~["*"] | ("*")+ ~["*","/"] )* ("-")+ "#" >
 }
 
 
-
-void INICIO():
-{}
+Nodo INICIO():
+{Nodo nuevo = new Nodo("INICIO"); Nodo s;}
 {
-	PAQUETE()<EOF>
+try{
+	s = PAQUETE()<EOF>{nuevo.insertar(s); return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	INICIO();
+	{return nuevo;}
+}
+}
+		
+Nodo PAQUETE():
+{Nodo nuevo = new Nodo("PAQUETE"); Nodo p;}
+{
+try{
+	(	p = LOGIN(){nuevo.insertar(p);}
+	|	<corcheteA> p= ATRIBUTO()<corcheteC>{nuevo.insertar(p);}
+	|	p =SENTENCIA(){nuevo.insertar(p);})
+	{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PAQUETE();
+	{return nuevo;}
+}
+}
+
+Nodo LOGIN():
+{Nodo nuevo = new Nodo("LOGIN"); Nodo s;}
+{
+		<validar><dosPuntos><entero>{return nuevo;}
+}
+
+Nodo ATRIBUTO():
+{Nodo nuevo = new Nodo("ATRIBUTO"); Nodo p;}
+{
+		<paquete>{return null;}
+	|	<instruccion>SENTENCIA(){return null;}
 		
 }
-void PAQUETE():
-{}
+
+
+
+
+Nodo SENTENCIA():
+{Nodo nuevo = new Nodo("SENTENCIA"); Nodo s, sp;}
 {
-		LOGIN()
-	|	<corcheteA>ATRIBUTO()<corcheteC>
+try{
+		s=INSTRUCCION() sp=SENTENCIAP() {nuevo.insertar(s); nuevo.insertar(sp);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	SENTENCIA();
+	{return nuevo;}
 }
-void LOGIN():
-{}
-{
-		<validar><dosPuntos><numero>
 }
-void ATRIBUTO():
-{}
+
+Nodo SENTENCIAP():
+{Nodo nuevo = new Nodo("SENTENCIA"); Nodo s, sp;}
 {
-		<paquete>
-	|	<instruccion>SENTENCIA()
-		
+try{
+		s=INSTRUCCION() sp=SENTENCIAP() {nuevo.insertar(s); nuevo.insertar(sp);}
+	|	{return null;}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	SENTENCIAP();
+	{return nuevo;}
+}
+}
+
+Nodo INSTRUCCION():
+{Nodo nuevo = new Nodo("INSTRUCCION"); Nodo s,n; Token i;}
+{
+try{
+	(	n=DECLARAR(){nuevo.insertar(n);}
+	|	n=ASIGNACION(){nuevo.insertar(n);}
+	|	n=SI(){nuevo.insertar(n);}
+	|	n=SELECCIONA(){nuevo.insertar(n);}
+	|	n=PARA(){nuevo.insertar(n);}
+	|	n=MIENTRAS(){nuevo.insertar(n);}
+	|	n=IMPRIMIR(){nuevo.insertar(n);}
+	|	n=FUNCION(){nuevo.insertar(n);}
+	|	n=DDL(){nuevo.insertar(n);}
+	| 	n=DML(){nuevo.insertar(n);}
+	|	n=DCL(){nuevo.insertar(n);}
+	|	i=<detener><puntoComa>{nuevo.insertar(new Nodo(i.image)); }
+	| 	i=<retorno> n=RETORNAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(n);}
+	|	i=<id> n=LLAMADA()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(n);}
+	|	n=CONTAR()<puntoComa>{nuevo.insertar(n);})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	INSTRUCCION();
+	{return nuevo;}
+}
+}
+
+Nodo TIPO():
+{Nodo nuevo = new Nodo("TIPO"); Nodo s; Token i;}
+{
+try{
+	(	i = <text>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <bool>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <integer>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <doble>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <date>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <dateTime>{ nuevo.insertar(new Nodo(i.image));}
+	| 	i = <id>{ nuevo.insertar(new Nodo(i.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	TIPO();
+	{return nuevo;}
+}
+}
+Nodo COMPLEMENTO():
+{Nodo nuevo = new Nodo("COMPLEMENTO"); Nodo s; Token i,j;}
+{
+try{
+	(	i = <nulo> s=COMPLEMENTOP(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	|	i = <no> j = <nulo> s=COMPLEMENTOP(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s);}
+	|	i = <autoincrementable> s=COMPLEMENTOP(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	|	i = <llave_primaria> s=COMPLEMENTOP(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	| 	i = <llave_foranea> j = <id> s=COMPLEMENTOP(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	COMPLEMENTO();
+	{return nuevo;}
+}
+}
+Nodo COMPLEMENTOP():
+{Nodo nuevo = new Nodo("COMPLEMENTOP"); Nodo s; Token i,j;}
+{
+try{
+	(	i = <nulo>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <no> j=<nulo>{ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));}
+	|	i = <autoincrementable>{ nuevo.insertar(new Nodo(i.image));}
+	|	i = <llave_primaria>{ nuevo.insertar(new Nodo(i.image));}
+	| 	i = <llave_foranea> j=<id>{ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	COMPLEMENTOP();
+	{return nuevo;}
+}
+}
+Nodo DDL():
+{Nodo nuevo = new Nodo("DDL"); Nodo s; Token i,j;}
+{
+try{
+	(	i=<crear> s=CREAR(){ nuevo.insertar(new Nodo(i.image));nuevo.insertar(s);} 
+	|	i=<usar> j=<id><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));}
+	|	i=<alterar> s=ALTERAR()<puntoComa>{ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);} 
+	|	i=<eliminar> s=ELIMINAR()<puntoComa>{ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);} )
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	DDL();
+	{return nuevo;}
+}
+}
+
+Nodo CREAR():
+{Nodo nuevo = new Nodo("CREAR"); Nodo s,p,l; Token i,j;}
+{
+try{
+	(	i=<base_datos> j=<id><puntoComa> {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));}
+	|	i=<tabla> j=<id><parentesisA> s=PARAMETROS()<parentesisC><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));  nuevo.insertar(s); }
+	|	i=<objeto> j=<id><parentesisA> s=PARAMETROS()<parentesisC><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); }
+	| 	i=<procedimiento> j=<id><parentesisA> s=PARAMETROSVAR()<parentesisC><llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(l); }
+	| 	i=<funcion> j=<id><parentesisA> s=PARAMETROSVAR()<parentesisC> p=TIPO()<llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(l); })
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	CREAR();
+	{return nuevo;}
+}
+}
+
+Nodo PARAMETROS():
+{Nodo nuevo = new Nodo("PARAMETROS"); Nodo s,c,p; Token i;}
+{
+try{
+		s=TIPO() i=<id> c=COMPLEMENTO() p=PARAMETROSP() { nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(c); nuevo.insertar(p);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PARAMETROS();
+	{return nuevo;}
+}
+}
+
+Nodo PARAMETROSP():
+{Nodo nuevo = new Nodo("PARAMETROSP"); Nodo s,c,p,q; Token i;}
+{
+try{
+	(	<coma> s=TIPO() i=<id> c=COMPLEMENTO() p=PARAMETROSP() { nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(c); nuevo.insertar(p);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PARAMETROSP();
+	{return nuevo;}
+}
+}
+
+Nodo PARAMETROSVAR():
+{Nodo nuevo = new Nodo("PARAMETROSVAR"); Nodo s,p; Token i;}
+{
+try{
+	(	s=TIPO() i=<idVar> p=PARAMETROSVARP() { nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(p);}
+	| 	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PARAMETROSVAR();
+	{return nuevo;}
+}
+}
+
+Nodo PARAMETROSVARP():
+{Nodo nuevo = new Nodo("PARAMETROSVARP"); Nodo s,p; Token i;}
+{
+try{
+	(	<coma>s=TIPO() i=<idVar> p=PARAMETROSVARP()  { nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(p);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PARAMETROSVARP();
+	{return nuevo;}
+}
+}
+
+Nodo ALTERAR():
+{Nodo nuevo = new Nodo("ALTERAR"); Nodo s; Token i,j,k,c;}
+{
+try{
+	(	i=<tabla> j=<id> s=TIPOALTERAR() { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s);}
+	|	i=<objeto> j=<id> s=TIPOALTERAR() { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s);}
+	|	i=<usuario> j=<id><cambiar> k=<password><igual> c=<cadena> { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo(k.image)); nuevo.insertar(new Nodo(c.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	ALTERAR();
+	{return nuevo;}
+}
+}
+
+Nodo TIPOALTERAR():
+{Nodo nuevo = new Nodo("TIPOALTERAR"); Nodo s; Token i;}
+{
+try{
+	(	i=<agregar><parentesisA> s=PARAMETROS()<parentesisC> { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	|	i=<quitar> s=LISTACAMPOS(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	TIPOALTERAR();
+	{return nuevo;}
+}
+}
+Nodo ELIMINAR():
+{Nodo nuevo = new Nodo("ELIMINAR"); Nodo s; Token i,j;}
+{
+try{
+	(	i=<tabla> j=<id> {nuevo.insertar(new Nodo(i.image));nuevo.insertar(new Nodo(i.image));}
+	|	i=<base_datos> j=<id>{nuevo.insertar(new Nodo(i.image));nuevo.insertar(new Nodo(i.image));}
+	|	i=<objeto> j=<id>{nuevo.insertar(new Nodo(i.image));nuevo.insertar(new Nodo(i.image));}
+	|	i=<user> j=<id>{nuevo.insertar(new Nodo(i.image));nuevo.insertar(new Nodo(i.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	ELIMINAR();
+	{return nuevo;}
+}
+}
+
+Nodo DML():
+{Nodo nuevo = new Nodo("DML"); Nodo s,p,d; Token i,j;}
+{
+try{
+	(	i=<insertar><en><tabla> j=<id><parentesisA> s=LISTAVALORES()<parentesisC> p=TIPOINSERTAR()<puntoComa> {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(p);}
+	|	i=<actualizar><tabla> j=<id><parentesisA> s=LISTACAMPOS()<parentesisC><valores><parentesisA> p=LISTAVALORES()<parentesisC> d=DONDE()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(d);}
+	|	i=<borrar><en><tabla> j=<id> d=DONDE()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(d);}
+	|	i=<seleccionar> s=SELECCIONAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	DML();
+	{return nuevo;}
+}
+}
+
+Nodo TIPOINSERTAR():
+{Nodo nuevo = new Nodo("TIPOINSERTAR"); Nodo s; Token i;}
+{
+try{
+	(	<valores><parentesisA> s=LISTAVALORES()<parentesisC>{nuevo.insertar(s);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	TIPOINSERTAR();
+	{return nuevo;}
+}
+}
+
+Nodo LISTACAMPOS():
+{Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s; Token i;}
+{
+try{
+		i=<id> s=LISTACAMPOSP(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	LISTACAMPOS();
+	{return nuevo;}
+}
+}
+
+Nodo LISTACAMPOSP():
+{Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s; Token i;}
+{
+try{
+	(	<coma>i=<id> s=LISTACAMPOSP(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	LISTAVALORESP();
+	{return nuevo;}
+}
+}
+
+Nodo LISTAVALORES():
+{Nodo nuevo = new Nodo("LISTAVALORES"); Nodo s,l; Token i;}
+{
+try{
+	(	s=OPERACION() l=LISTAVALORESP(){nuevo.insertar(s); nuevo.insertar(l); }
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	LISTAVALORES();
+	{return nuevo;}
+}
+}
+
+Nodo LISTAVALORESP():
+{Nodo nuevo = new Nodo("LISTAVALORESP"); Nodo s,l; Token i;}
+{
+try{
+	(	<coma> s=OPERACION() l=LISTAVALORESP(){nuevo.insertar(s); nuevo.insertar(l); }
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	LISTAVALORESP();
+	{return nuevo;}
+}
+}
+
+Nodo DONDE():
+{Nodo nuevo = new Nodo("DONDE"); Nodo s; Token i;}
+{
+try{
+	(	i=<donde> s=OPERACION(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	DONDE();
+	{return nuevo;}
+}
+}
+
+Nodo SELECCIONAR():
+{Nodo nuevo = new Nodo("SELECCIONAR"); Nodo s,o,d,l; Token i;}
+{
+try{
+	(	l=LISTACAMPOS()<de> i=<id> d=DONDE() o=ORDENAR(){nuevo.insertar(l); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); }
+	|   <por><de> i=<id> d=DONDE() o=ORDENAR() {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); })
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	SELECCIONAR();
+	{return nuevo;}
+}
+}
+
+Nodo ORDENAR():
+{Nodo nuevo = new Nodo("ORDENAR"); Nodo s; Token i;}
+{
+try{
+	(	<ordenar><ppor> i=<id> s=TIPOORDENAR() {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	| 	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	ORDENAR();
+	{return nuevo;}
+}
+}
+
+Nodo TIPOORDENAR():
+{Nodo nuevo = new Nodo("TIPOORDENAR"); Nodo s; Token i;}
+{
+try{
+	(	i=<asc> {nuevo.insertar(new Nodo(i.image));}
+	|	i=<desc> {nuevo.insertar(new Nodo(i.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	TIPOORDENAR();
+	{return nuevo;}
+}
+}
+
+Nodo DCL():
+{Nodo nuevo = new Nodo("DCL"); Nodo s; Token i;}
+{
+try{
+	(	i=<otorgar><permisos> s=LISTAVALORES()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	|	i=<denegar><permisos> s=LISTAVALORES()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	DCL();
+	{return nuevo;}
+}
+}
+
+Nodo LISTAVARIABLES():
+{Nodo nuevo = new Nodo("LISTAVARIABLES"); Nodo s; Token i;}
+{
+try{
+	(	<coma> i=<idVar> s=LISTAVARIABLES(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	LISTAVARIABLES();
+	{return nuevo;}
+}
+}
+
+Nodo DECLARAR():
+{Nodo nuevo = new Nodo("DECLARAR"); Nodo l,s,d; Token i;}
+{
+try{
+		<declarar> i=<idVar> l=LISTAVARIABLES() s=TIPO() d=DECLARARP()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(l); nuevo.insertar(s); nuevo.insertar(d);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	DECLARAR();
+	{return nuevo;}
+}
+}
+
+Nodo DECLARARP():
+{Nodo nuevo = new Nodo("DECLARARP"); Nodo s; Token i;}
+{
+try{
+	(	<igual> s=OPERACION(){nuevo.insertar(s);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	DECLARARP();
+	{return nuevo;}
+}
+}
+
+Nodo ASIGNACION():
+{Nodo nuevo = new Nodo("ASIGNACION"); Nodo s,p; Token i;}
+{
+try{
+		i=<idVar> s=VAR()<igual> p=OPERACION()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(p);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	ASIGNACION();
+	{return nuevo;}
+}
+}
+
+Nodo VAR():
+{Nodo nuevo = new Nodo("VAR"); Nodo s; Token i;}
+{
+try{
+	(	<punto> i=<id>{nuevo.insertar(new Nodo(i.image)); }
+	| 	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	VAR();
+	{return nuevo;}
+}
+}
+
+Nodo SI():
+{Nodo nuevo = new Nodo("SI"); Nodo s,m,o; Token i;}
+{
+try{
+		i=<si><parentesisA> s=OPERACION() <parentesisC> <llaveA> m=SENTENCIA() <llaveC> o=SINO(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(m); nuevo.insertar(o);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	SI();
+	{return nuevo;}
+}
+}
+
+Nodo SINO():
+{Nodo nuevo = new Nodo("SINO"); Nodo s; Token i;}
+{
+try{
+	(	i=<sino><llaveA> s=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	SINO();
+	{return nuevo;}
+}
+}
+
+Nodo SELECCIONA():
+{Nodo nuevo = new Nodo("SELECCIONA"); Nodo c,s; Token i;}
+{
+try{
+		i=<selecciona><parentesisA> s=OPERACION()<parentesisC><llaveA> c=CASO()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(c); }
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	SELECCIONA();
+	{return nuevo;}
+}
+}
+Nodo CASO():
+{Nodo nuevo = new Nodo("CASO"); Nodo l,c,s; Token i;}
+{
+try{
+	(	i=<caso> s=TIPOCASO()<dosPuntos> l=SENTENCIA() c=CASO(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(l); nuevo.insertar(c);}
+	|	i=<defecto><dosPuntos> l=SENTENCIA(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(l);}
+	|	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	CASO();
+	{return nuevo;}
+}
+}
+
+Nodo TIPOCASO():
+{Nodo nuevo = new Nodo("TIPOCASO"); Nodo s; Token i;}
+{
+try{
+	(	i=<cadena>{nuevo.insertar(new Nodo(i.image));}
+	| 	i=<entero>{nuevo.insertar(new Nodo(i.image));}
+	|	i=<decimal>{nuevo.insertar(new Nodo(i.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	TIPOCASO();
+	{return nuevo;}
+}
+}
+
+Nodo PARA():
+{Nodo nuevo = new Nodo("PARA"); Nodo s,l; Token i;}
+{
+try{
+		i=<para><parentesisA>s=PARAP()<parentesisC><llaveA>l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(l);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PARA();
+	{return nuevo;}
+}
+}
+
+Nodo PARAP():
+{Nodo nuevo = new Nodo("PARAP"); Nodo s,p,q; Token i;}
+{
+try{
+	(	s=DECLARAR() p=OPERACION()<puntoComa> q=OPCIONPARA(){nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(q);}
+	|   s=ASIGNACION() p=OPERACION()<puntoComa> q=OPCIONPARA(){nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(q);})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	PARAP();
+	{return nuevo;}
+}
+}
+
+Nodo OPCIONPARA():
+{Nodo nuevo = new Nodo("OPCIONPARA"); Nodo s; Token i;}
+{
+try{
+	(	i=<mas><mas>{nuevo.insertar(new Nodo(i.image));}
+	|   i=<menos><menos>{nuevo.insertar(new Nodo(i.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	OPCIONPARA();
+	{return nuevo;}
+}
+}
+
+Nodo MIENTRAS():
+{Nodo nuevo = new Nodo("MIENTRAS"); Nodo s,l; Token i;}
+{
+try{
+		i=<mientras><parentesisA> s=OPERACION()<parentesisC><llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(l);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	MIENTRAS();
+	{return nuevo;}
+}
+}
+
+Nodo IMPRIMIR():
+{Nodo nuevo = new Nodo("IMPRIMIR"); Nodo s; Token i;}
+{
+try{
+		i=<imprimir> s=OPERACION()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	IMPRIMIR();
+	{return nuevo;}
+}
+}
+
+Nodo CONTAR():
+{Nodo nuevo = new Nodo("CONTAR"); Nodo s; Token i;}
+{
+try{
+		i=<contar><parentesisA><menormenor><seleccionar> s=SELECCIONAR()<mayormayor><parentesisC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	CONTAR();
+	{return nuevo;}
+}
+}
+
+Nodo FUNCION():
+{Nodo nuevo = new Nodo("FUNCION"); Nodo s; Token i;}
+{
+try{
+	(	i=<backup> s=BACKUP()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+	|	i=<restaurar> s=RESTAURAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	FUNCION();
+	{return nuevo;}
+}
+}
+
+Nodo BACKUP():
+{Nodo nuevo = new Nodo("BACKUP"); Nodo s; Token i,j,k;}
+{
+try{
+	(	i=<usqldump> j=<id> k=<id>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo(k.image));}
+	|	i=<completo> j=<id> k=<id>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo(k.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	BACKUP();
+	{return nuevo;}
+}
+}
+
+Nodo RESTAURAR():
+{Nodo nuevo = new Nodo("RESTAURAR"); Nodo s; Token i,j;}
+{
+try{
+	(	i=<usqldump> j=<cadena>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));}
+	|	i=<completo> j=<cadena>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	RESTAURAR();
+	{return nuevo;}
+}
 }
 
 
 
 
-void SENTENCIA():{}
+Nodo RETORNAR():
+{Nodo nuevo = new Nodo("RETORNAR"); Nodo s; Token i;}
 {
-		S()SENTENCIAP()
+try{
+	(	s=OPERACION(){nuevo.insertar(s);}
+	| 	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	RETORNAR();
+	{return nuevo;}
 }
-void SENTENCIAP():{}
-{
-		S()SENTENCIAP()
-	|	{}
 }
-void S():{}
+Nodo LLAMADA():
+{Nodo nuevo = new Nodo("LLAMADA"); Nodo s; Token i;}
 {
-	DDL()
+try{
+	(	<parentesisA> s=LISTAVALORES()<parentesisC>{nuevo.insertar(s);}
+	|	<punto> s=OBJETO(){nuevo.insertar(s);}
+	| 	{return null;})
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	LLAMADA();
+	{return nuevo;}
 }
-void DDL():{}
+}
+Nodo OBJETO():
+{Nodo nuevo = new Nodo("OBJETO"); Nodo s; Token i;}
 {
-	<crear><id><id><puntoComa>
+try{
+	(	i=<id>{nuevo.insertar(new Nodo(i.image)); }
+	|   i=<por>{nuevo.insertar(new Nodo(i.image)); })
+		{return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==puntoComa || t.kind==llaveC){
+		return nuevo; 
+	}
+	OBJETO();
+	{return nuevo;}
+}
 }
 
 
+Nodo OPERACION():
+{Nodo nuevo = new Nodo("OPERACION"); Nodo s; Token i;}
+{
+		s=AND(){nuevo.insertar(s); }
+		{return nuevo;}
+}
+Nodo AND():
+{Nodo nuevo = new Nodo("E"); Nodo s,r; Token i;}
+{
+		s=OR() r=ANDP(s) {nuevo.insertar(r);}
+		{return nuevo;}
+}
+Nodo ANDP(Nodo h):
+{Nodo nuevo= new Nodo("E"); Nodo n = new Nodo("E"); Nodo s,r; Token i;}
+{
+	(	i=<and> s=OR(){ n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=ANDP(n) {nuevo.insertar(r);}
+	|	{return null;})
+		{return nuevo;}
 
+}
+Nodo OR():
+{Nodo nuevo = new Nodo("E"); Nodo s,r; Token i;}
+{
+		s=REL() r=ORP(s) {nuevo.insertar(r);}
+		{return nuevo;}
+}
+Nodo ORP(Nodo h):
+{Nodo nuevo = new Nodo("E"); Nodo n = new Nodo("E");  Nodo s,r; Token i;}
+{
+	(	i=<or> s=REL() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=ORP(n) {nuevo.insertar(r);}
+	|	{return null;})
+		{return nuevo;}
+}
+Nodo REL():
+{Nodo nuevo = new Nodo("E"); Nodo s,r; Token i;}
+{
+		s=SUM() r=RELP(s) {nuevo.insertar(r);}
+		{return nuevo;}
+}
+Nodo RELP(Nodo h):
+{Nodo nuevo = new Nodo("E"); Nodo n = new Nodo("E");  Nodo s,r; Token i;}
+{
+	(	i=<igualIgual> s=SUM() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=RELP(n) {nuevo.insertar(r);}
+	|	i=<diferente> s=SUM() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=RELP(n) {nuevo.insertar(r);}
+	|	i=<mayorIgual> s=SUM() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=RELP(n) {nuevo.insertar(r);}
+	|	i=<menorIgual> s=SUM() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=RELP(n) {nuevo.insertar(r);}
+	|	i=<mayor> s=SUM() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=RELP(n) {nuevo.insertar(r);}
+	|	i=<menor> s=SUM() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=RELP(n) {nuevo.insertar(r);}
+	|	{return null;})
+		{return nuevo;}
+}
+Nodo SUM():
+{Nodo nuevo = new Nodo("E"); Nodo s,r; Token i;}
+{
+		 s=MULT() r=SUMP(s) {nuevo.insertar(r);}
+		{return nuevo;}
+}
+Nodo SUMP(Nodo h):
+{Nodo nuevo = new Nodo("E"); Nodo n = new Nodo("E");  Nodo s,r;  Token i;}
+{
+	(	i=<mas> s=MULT() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=SUMP(n) {nuevo.insertar(r);}
+	|	i=<menos> s=MULT() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=SUMP(n) {nuevo.insertar(r);}
+	|  	{return null;})
+		{return nuevo;}
+
+}
+Nodo MULT():
+{Nodo nuevo = new Nodo("E"); Nodo s,r; Token i;}
+{
+		 s=F() r=MULTP(s) {nuevo.insertar(r);}
+		{return nuevo;}
+}
+Nodo MULTP(Nodo h):
+{Nodo nuevo = new Nodo("E");Nodo n = new Nodo("E");  Nodo s,r;  Token i;}
+{
+	(	i=<por> s=F() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=MULTP(n) {nuevo.insertar(r);}
+	|	i=<div> s=F() { n.insertar(h); n.insertar(new Nodo(i.image)); n.insertar(s);} r=MULTP(n) {nuevo.insertar(r);}
+	|  	{return null;})
+		{return nuevo;}
+
+}
+Nodo F():
+{Nodo nuevo = new Nodo("E"); Nodo s; Token i;}
+{
+	(	i=<entero>{ nuevo.insertar(new Nodo(i.image, "entero"));}
+	|	i=<idVar>{ nuevo.insertar(new Nodo(i.image, "var"));}
+	|	i=<cadena>{ nuevo.insertar(new Nodo(i.image, "cadena"));}
+	|	i=<decimal>{ nuevo.insertar(new Nodo(i.image, "decimal"));}
+	|	i=<ffecha>{ nuevo.insertar(new Nodo(i.image, "fecha"));}
+	| 	<parentesisA> s=AND()<parentesisC>{ nuevo.insertar(s);}
+	|	i=<id> s=LLAMADA(){ nuevo.insertar(new Nodo(i.image, "entero")); nuevo.insertar(s);}
+	|	i=<fecha><parentesisA><parentesisC>{ nuevo.insertar(new Nodo(i.image));}
+	|	i=<fechaHora><parentesisA><parentesisC>{ nuevo.insertar(new Nodo(i.image));}
+	|	s=CONTAR(){ nuevo.insertar(s);})
+		{return nuevo;}
+}

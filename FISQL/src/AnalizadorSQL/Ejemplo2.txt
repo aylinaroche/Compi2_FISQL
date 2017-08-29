@@ -1,0 +1,49 @@
+CREAR BASE_DATOS Ejemplo2;
+
+USAR Ejemplo2;
+
+CREAR TABLA Proveedor(
+	INTEGER id Llave_Primaria Autoincrementable,
+	TEXT nombre No Nulo,
+	TEXT direccion No Nulo
+);
+CREAR TABLA Producto(
+	INTEGER id Llave_Primaria Autoincrementable,
+	TEXT nombre No Nulo,
+	DOUBLE precio No Nulo,
+	INTEGER id_proveedor Llave_Foranea Proveedor
+);
+CREAR PROCEDIMIENTO llenarTablas(){
+	DECLARAR @producto INTEGER = 0;
+	#inserta 10 registros en la tabla proveedor
+	
+	PARA(DECLARAR @i INTEGER = 0; @i < 10; ++){
+		INSERTAR EN TABLA Proveedor(id, nombre, direccion)
+		VALORES (@i, "Proveedor" + @i, "Direccion" + @i);
+		#inserta 20 productos por proveedor
+		
+		PARA(DECLARAR @j INTEGER = 0; @j < 20; ++){
+			DECLARAR @precio DOUBLE = generarPrecio(@producto);
+			INSERTAR EN TABLA Producto
+			(@producto, "Producto" + @producto, @precio, @i);
+			@producto = @producto + 1;
+		}
+	}
+}
+
+CREAR FUNCION generarPrecio(INTEGER @a) INTEGER{
+	DECLARAR @retorno DOUBLE = 1.5;
+	RETORNO @retorno * @a;
+}
+
+#llenar las tablas
+llenarTablas();
+#imprimir cantidad de registros de la tabla Producto
+
+IMPRIMIR(contar(<<SELECCIONAR * DE Producto>>));
+#el resultado de la instrucción debería ser:
+#200
+#borrar todos los productos del proveedor con id 1
+BORRAR EN TABLA Producto DONDE id_proveedor == 1;
+#imprimir cantidad de registros de la tabla Producto
+IMPRIMIR(contar(<<SELECCIONAR * DE Producto>>));

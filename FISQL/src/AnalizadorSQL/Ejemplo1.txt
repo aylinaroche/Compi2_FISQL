@@ -1,0 +1,41 @@
+CREAR BASE_DATOS Ejemplo1;
+USAR Ejemplo1;
+
+CREAR OBJETO Direccion(INTEGER avenida, INTEGER calle, TEXT nombre, TEXT descripcion);
+
+CREAR TABLA Estudiante ( INTEGER id Llave_Primaria Autoincrementable, TEXT Nombre No Nulo,
+DATE fh_nac No Nulo, BOOL trabaja, Direccion direccion);
+
+CREAR TABLA Curso( INTEGER id Llave_Primaria Autoincrementable,TEXT Nombre No Nulo,
+INTEGER creditos No Nulo);
+
+CREAR TABLA Asignacion( INTEGER id Llave_Primaria Autoincrementable, DATETIME fh_Asignacion No Nulo,INTEGER id_estudiante Llave_Foranea Estudiante,
+INTEGER id_curso Llave_Foranea Curso);
+
+CREAR PROCEDIMIENTO Asignar (INTEGER @id_e, INTEGER @id_c){
+
+	DECLARAR @estudiante INTEGER= CONTAR(<<SELECCIONAR * DE estudiante DONDE id == @id_e >>);
+
+	DECLARAR @curso INTEGER= CONTAR(<<SELECCIONAR * DE curso DONDE id == @id_c >>);
+	
+	SI (@curso > 0){
+		SI(@estudiante > 0){
+			INSERTAR EN TABLA asignacion(id_estudiante, id_curso) 
+			VALORES (@id_e, @id_c);
+		}SINO{
+			IMPRIMIR("El usuario ingresado no existe");
+		}
+	}SINO{
+			IMPRIMIR("El curso ingresado no existe");
+	}
+}
+
+CREAR FUNCION crearDireccion (INTEGER @calle, INTEGER @avenida, TEXT @nombre, TEXT @descripcion) Direccion{
+	
+	DECLARAR @direc DIRECCION;
+	@direc.calle = @calle;
+	@direc.avenida = @avenida;
+	@direc.nombre = @nombre;
+	@direc.descripcion = @descripcion;
+	RETORNO @direc;
+}
