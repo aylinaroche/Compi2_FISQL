@@ -1,0 +1,106 @@
+options {
+  IGNORE_CASE = true;
+}
+PARSER_BEGIN(parserXML)
+package AnalizadorXML;
+import fisql.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+public class parserXML
+{
+//se comenta esto
+        public static Nodo compilar(String cadena) throws ParseException {
+            Nodo nodo = null;
+            try {
+                InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
+
+                parserXML analizador = new parserXML(stream);
+                analizador.INICIO();
+                System.out.println("Se ha compilado con exito");
+
+            } catch (ParseException e) {
+                System.out.println(e.getMessage());
+                System.out.println("Se han encontrado errores");
+            }
+            return nodo;
+        }
+}
+
+PARSER_END(parserXML)
+
+TOKEN:
+{
+		<db: "db">
+	|	<nombreA: "<nombre>">
+	|	<nombreC: "</nombre>">
+	| 	<path: "path">
+	| 	<procedure: "procedure">
+	| 	<rows: "rows">
+	| 	<object: "object">
+	| 	<tipoInt: "int">
+	|	<tipoText: "text">
+	|	<tipoBool: "bool">
+	|	<proc: "proc">
+	|	<params: "params">
+	|	<crear: "crear">
+	|	<obj: "obj">
+	| 	<atr: "atr">
+	|	<tabla: "tabla">
+	|	<maestro: "maestro">
+	|	<basedatos: "baseDatos">
+}
+
+TOKEN:
+{
+		<parentesisA: "(">
+	| 	<parentesisC: ")">
+	|	<llaveA: "{">
+	|	<llaveC: "}">
+	|	<corcheteA: "[">
+	|	<corcheteC: "]">
+	|	<puntoComa: ";">
+	|	<dosPuntos: ":">
+	|	<etqC: ">">
+	|	<etqA: "<">
+}
+TOKEN:
+{
+		<entero: (["0"-"9"])+ >
+	|	<decimal: (["0"-"9"])+"."(["0"-"9"])+ >
+	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+	|	<simbolo: "#"|"@"|"!"|"?"|"$"|"%"|"^"|"&"|"*"|"!"|"("|")"|"-"|"_"|"="|"<"|">"|"/"|"¿"|"¡"|"."|"["|"]">
+	|	<cadena: "\"" (~["\""])* "\"">
+	
+}
+SKIP:
+{
+	" "| "\r\n" | "\t" | "\n" | "\r" | "\f"
+	|"\u00a0" 
+}
+
+
+void INICIO():{}
+{
+		ETIQUETA()
+}
+void ETIQUETA():{}
+{
+		<etqA>NOMBREETIQUETA()
+}
+void NOMBREETIQUETA():{}
+{
+		<maestro><etqC>MAESTRO()<etqA><maestro><etqC>
+	|	<db>MAESTRO()<etqA><maestro><etqC>
+}
+void MAESTRO():{}
+{
+		M()MAESTRO()
+	|	{}
+}
+void M():{}
+{
+		<etqA><db><etqC><nombreA><cadena><nombreC><etqA><db><etqC>
+		<etqA><db><etqC><path><cadena><path><etqA><db><etqC>
+}

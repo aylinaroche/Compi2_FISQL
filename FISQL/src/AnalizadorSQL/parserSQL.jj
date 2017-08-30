@@ -4,6 +4,7 @@ options {
 PARSER_BEGIN(parserSQL)
 package AnalizadorSQL;
 import fisql.*;
+import USQL.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -245,11 +246,11 @@ try{
 }
 
 Nodo SENTENCIAP():
-{Nodo nuevo = new Nodo("SENTENCIA"); Nodo s, sp;}
+{Nodo nuevo = new Nodo("SENTENCIAP"); Nodo s, sp;}
 {
 try{
-		s=INSTRUCCION() sp=SENTENCIAP() {nuevo.insertar(s); nuevo.insertar(sp);}
-	|	{return null;}
+	(	s=INSTRUCCION() sp=SENTENCIAP() {nuevo.insertar(s); nuevo.insertar(sp);}
+	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -277,9 +278,9 @@ try{
 	|	n=DDL(){nuevo.insertar(n);}
 	| 	n=DML(){nuevo.insertar(n);}
 	|	n=DCL(){nuevo.insertar(n);}
-	|	i=<detener><puntoComa>{nuevo.insertar(new Nodo(i.image)); }
-	| 	i=<retorno> n=RETORNAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(n);}
-	|	i=<id> n=LLAMADA()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(n);}
+	|	i=<detener><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(";"));}
+	| 	i=<retorno> n=RETORNAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(n); nuevo.insertar(new Nodo(";"));}
+	|	i=<id> n=LLAMADA()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(n);nuevo.insertar(new Nodo(";"));}
 	|	n=CONTAR()<puntoComa>{nuevo.insertar(n);})
 		{return nuevo;}
 }catch(ParseException e){
@@ -381,11 +382,11 @@ Nodo CREAR():
 {Nodo nuevo = new Nodo("CREAR"); Nodo s,p,l; Token i,j;}
 {
 try{
-	(	i=<base_datos> j=<id><puntoComa> {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));}
-	|	i=<tabla> j=<id><parentesisA> s=PARAMETROS()<parentesisC><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));  nuevo.insertar(s); }
-	|	i=<objeto> j=<id><parentesisA> s=PARAMETROS()<parentesisC><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); }
-	| 	i=<procedimiento> j=<id><parentesisA> s=PARAMETROSVAR()<parentesisC><llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(l); }
-	| 	i=<funcion> j=<id><parentesisA> s=PARAMETROSVAR()<parentesisC> p=TIPO()<llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(l); })
+	(	i=<base_datos> j=<id><puntoComa> {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));nuevo.insertar(new Nodo(";"));}
+	|	i=<tabla> j=<id><parentesisA> s=PARAMETROS()<parentesisC><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s);nuevo.insertar(new Nodo(")")); }
+	|	i=<objeto> j=<id><parentesisA> s=PARAMETROS()<parentesisC><puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo(")"));}
+	| 	i=<procedimiento> j=<id><parentesisA> s=PARAMETROSVAR()<parentesisC><llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image));  nuevo.insertar(new Nodo("("));nuevo.insertar(s);  nuevo.insertar(new Nodo("){")); nuevo.insertar(l); nuevo.insertar(new Nodo("}"));}
+	| 	i=<funcion> j=<id><parentesisA> s=PARAMETROSVAR()<parentesisC> p=TIPO()<llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(new Nodo(j.image));  nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo(")"));nuevo.insertar(p); nuevo.insertar(new Nodo("{")); nuevo.insertar(l); nuevo.insertar(new Nodo("}"));})
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -419,7 +420,7 @@ Nodo PARAMETROSP():
 {Nodo nuevo = new Nodo("PARAMETROSP"); Nodo s,c,p,q; Token i;}
 {
 try{
-	(	<coma> s=TIPO() i=<id> c=COMPLEMENTO() p=PARAMETROSP() { nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(c); nuevo.insertar(p);}
+	(	<coma> s=TIPO() i=<id> c=COMPLEMENTO() p=PARAMETROSP() { nuevo.insertar(new Nodo(",")); nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(c); nuevo.insertar(p);}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -455,7 +456,7 @@ Nodo PARAMETROSVARP():
 {Nodo nuevo = new Nodo("PARAMETROSVARP"); Nodo s,p; Token i;}
 {
 try{
-	(	<coma>s=TIPO() i=<idVar> p=PARAMETROSVARP()  { nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(p);}
+	(	<coma>s=TIPO() i=<idVar> p=PARAMETROSVARP()  { nuevo.insertar(new Nodo(",")); nuevo.insertar(s); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(p);}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -475,7 +476,7 @@ Nodo ALTERAR():
 try{
 	(	i=<tabla> j=<id> s=TIPOALTERAR() { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s);}
 	|	i=<objeto> j=<id> s=TIPOALTERAR() { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s);}
-	|	i=<usuario> j=<id><cambiar> k=<password><igual> c=<cadena> { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo(k.image)); nuevo.insertar(new Nodo(c.image));})
+	|	i=<usuario> j=<id><cambiar> k=<password><igual> c=<cadena> { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo("cambiar password=")); nuevo.insertar(new Nodo(k.image)); nuevo.insertar(new Nodo(c.image));})
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -492,7 +493,7 @@ Nodo TIPOALTERAR():
 {Nodo nuevo = new Nodo("TIPOALTERAR"); Nodo s; Token i;}
 {
 try{
-	(	i=<agregar><parentesisA> s=PARAMETROS()<parentesisC> { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	(	i=<agregar><parentesisA> s=PARAMETROS()<parentesisC> { nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s);nuevo.insertar(new Nodo(")"));}
 	|	i=<quitar> s=LISTACAMPOS(){ nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
 		{return nuevo;}
 }catch(ParseException e){
@@ -529,10 +530,10 @@ Nodo DML():
 {Nodo nuevo = new Nodo("DML"); Nodo s,p,d; Token i,j;}
 {
 try{
-	(	i=<insertar><en><tabla> j=<id><parentesisA> s=LISTAVALORES()<parentesisC> p=TIPOINSERTAR()<puntoComa> {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(p);}
-	|	i=<actualizar><tabla> j=<id><parentesisA> s=LISTACAMPOS()<parentesisC><valores><parentesisA> p=LISTAVALORES()<parentesisC> d=DONDE()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(d);}
-	|	i=<borrar><en><tabla> j=<id> d=DONDE()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(d);}
-	|	i=<seleccionar> s=SELECCIONAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+	(	i=<insertar><en><tabla> j=<id><parentesisA> s=LISTAVALORES()<parentesisC> p=TIPOINSERTAR()<puntoComa> {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("en tabla")); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo(")")); nuevo.insertar(p);}
+	|	i=<actualizar><tabla> j=<id><parentesisA> s=LISTACAMPOS()<parentesisC><valores><parentesisA> p=LISTAVALORES()<parentesisC> d=DONDE()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("tabla")); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo(") valores (")); nuevo.insertar(p); nuevo.insertar(new Nodo(")")); nuevo.insertar(d); nuevo.insertar(new Nodo(";"));}
+	|	i=<borrar><en><tabla> j=<id> d=DONDE()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("en tabla")); nuevo.insertar(new Nodo(j.image)); nuevo.insertar(d); nuevo.insertar(new Nodo(";"));}
+	|	i=<seleccionar> s=SELECCIONAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(new Nodo(";")); })
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -549,7 +550,7 @@ Nodo TIPOINSERTAR():
 {Nodo nuevo = new Nodo("TIPOINSERTAR"); Nodo s; Token i;}
 {
 try{
-	(	<valores><parentesisA> s=LISTAVALORES()<parentesisC>{nuevo.insertar(s);}
+	(	<valores><parentesisA> s=LISTAVALORES()<parentesisC>{nuevo.insertar(new Nodo("valores(")); nuevo.insertar(s);nuevo.insertar(new Nodo(")"));}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -584,7 +585,7 @@ Nodo LISTACAMPOSP():
 {Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s; Token i;}
 {
 try{
-	(	<coma>i=<id> s=LISTACAMPOSP(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+	(	<coma>i=<id> s=LISTACAMPOSP(){nuevo.insertar(new Nodo(","));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -620,7 +621,7 @@ Nodo LISTAVALORESP():
 {Nodo nuevo = new Nodo("LISTAVALORESP"); Nodo s,l; Token i;}
 {
 try{
-	(	<coma> s=OPERACION() l=LISTAVALORESP(){nuevo.insertar(s); nuevo.insertar(l); }
+	(	<coma> s=OPERACION() l=LISTAVALORESP(){nuevo.insertar(new Nodo(",")); nuevo.insertar(s); nuevo.insertar(l); }
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -656,8 +657,8 @@ Nodo SELECCIONAR():
 {Nodo nuevo = new Nodo("SELECCIONAR"); Nodo s,o,d,l; Token i;}
 {
 try{
-	(	l=LISTACAMPOS()<de> i=<id> d=DONDE() o=ORDENAR(){nuevo.insertar(l); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); }
-	|   <por><de> i=<id> d=DONDE() o=ORDENAR() {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); })
+	(	l=LISTACAMPOS()<de> i=<id> d=DONDE() o=ORDENAR(){nuevo.insertar(l);nuevo.insertar(new Nodo("de")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); }
+	|   <por><de> i=<id> d=DONDE() o=ORDENAR() {nuevo.insertar(new Nodo("por de"));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); })
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -674,7 +675,7 @@ Nodo ORDENAR():
 {Nodo nuevo = new Nodo("ORDENAR"); Nodo s; Token i;}
 {
 try{
-	(	<ordenar><ppor> i=<id> s=TIPOORDENAR() {nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	(	<ordenar><ppor> i=<id> s=TIPOORDENAR() {nuevo.insertar(new Nodo("ordenar por")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
 	| 	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -710,8 +711,8 @@ Nodo DCL():
 {Nodo nuevo = new Nodo("DCL"); Nodo s; Token i;}
 {
 try{
-	(	i=<otorgar><permisos> s=LISTAVALORES()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
-	|	i=<denegar><permisos> s=LISTAVALORES()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+	(	i=<otorgar><permisos> s=LISTAVALORES()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("permisos")); nuevo.insertar(s);}
+	|	i=<denegar><permisos> s=LISTAVALORES()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("permisos")); nuevo.insertar(s);})
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -728,7 +729,7 @@ Nodo LISTAVARIABLES():
 {Nodo nuevo = new Nodo("LISTAVARIABLES"); Nodo s; Token i;}
 {
 try{
-	(	<coma> i=<idVar> s=LISTAVARIABLES(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	(	<coma> i=<idVar> s=LISTAVARIABLES(){nuevo.insertar(new Nodo(",")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -746,7 +747,7 @@ Nodo DECLARAR():
 {Nodo nuevo = new Nodo("DECLARAR"); Nodo l,s,d; Token i;}
 {
 try{
-		<declarar> i=<idVar> l=LISTAVARIABLES() s=TIPO() d=DECLARARP()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(l); nuevo.insertar(s); nuevo.insertar(d);}
+		<declarar> i=<idVar> l=LISTAVARIABLES() s=TIPO() d=DECLARARP()<puntoComa>{nuevo.insertar(new Nodo("declarar")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(l); nuevo.insertar(s); nuevo.insertar(d);}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -763,7 +764,7 @@ Nodo DECLARARP():
 {Nodo nuevo = new Nodo("DECLARARP"); Nodo s; Token i;}
 {
 try{
-	(	<igual> s=OPERACION(){nuevo.insertar(s);}
+	(	<igual> s=OPERACION(){nuevo.insertar(new Nodo("=")); nuevo.insertar(s);}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -781,7 +782,7 @@ Nodo ASIGNACION():
 {Nodo nuevo = new Nodo("ASIGNACION"); Nodo s,p; Token i;}
 {
 try{
-		i=<idVar> s=VAR()<igual> p=OPERACION()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(p);}
+		i=<idVar> s=VAR()<igual> p=OPERACION()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);nuevo.insertar(new Nodo("=")); nuevo.insertar(p);nuevo.insertar(new Nodo(";"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -798,7 +799,7 @@ Nodo VAR():
 {Nodo nuevo = new Nodo("VAR"); Nodo s; Token i;}
 {
 try{
-	(	<punto> i=<id>{nuevo.insertar(new Nodo(i.image)); }
+	(	<punto> i=<id>{nuevo.insertar(new Nodo(".")); nuevo.insertar(new Nodo(i.image)); }
 	| 	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -816,7 +817,7 @@ Nodo SI():
 {Nodo nuevo = new Nodo("SI"); Nodo s,m,o; Token i;}
 {
 try{
-		i=<si><parentesisA> s=OPERACION() <parentesisC> <llaveA> m=SENTENCIA() <llaveC> o=SINO(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(m); nuevo.insertar(o);}
+		i=<si><parentesisA> s=OPERACION() <parentesisC> <llaveA> m=SENTENCIA() <llaveC> o=SINO(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo(")")); nuevo.insertar(new Nodo("{"));nuevo.insertar(m); nuevo.insertar(new Nodo("}")); nuevo.insertar(o);}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -833,7 +834,7 @@ Nodo SINO():
 {Nodo nuevo = new Nodo("SINO"); Nodo s; Token i;}
 {
 try{
-	(	i=<sino><llaveA> s=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+	(	i=<sino><llaveA> s=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("{")); nuevo.insertar(s); nuevo.insertar(new Nodo("}"));}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -851,7 +852,7 @@ Nodo SELECCIONA():
 {Nodo nuevo = new Nodo("SELECCIONA"); Nodo c,s; Token i;}
 {
 try{
-		i=<selecciona><parentesisA> s=OPERACION()<parentesisC><llaveA> c=CASO()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(c); }
+		i=<selecciona><parentesisA> s=OPERACION()<parentesisC><llaveA> c=CASO()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo("){")); nuevo.insertar(c); nuevo.insertar(new Nodo("}"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -867,8 +868,8 @@ Nodo CASO():
 {Nodo nuevo = new Nodo("CASO"); Nodo l,c,s; Token i;}
 {
 try{
-	(	i=<caso> s=TIPOCASO()<dosPuntos> l=SENTENCIA() c=CASO(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(l); nuevo.insertar(c);}
-	|	i=<defecto><dosPuntos> l=SENTENCIA(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(l);}
+	(	i=<caso> s=TIPOCASO()<dosPuntos> l=SENTENCIA() c=CASO(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);nuevo.insertar(new Nodo(":")); nuevo.insertar(l); nuevo.insertar(c);}
+	|	i=<defecto><dosPuntos> l=SENTENCIA(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(":"));nuevo.insertar(l);}
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -905,7 +906,7 @@ Nodo PARA():
 {Nodo nuevo = new Nodo("PARA"); Nodo s,l; Token i;}
 {
 try{
-		i=<para><parentesisA>s=PARAP()<parentesisC><llaveA>l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(l);}
+		i=<para><parentesisA>s=PARAP()<parentesisC><llaveA>l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s);nuevo.insertar(new Nodo("){")); nuevo.insertar(l);nuevo.insertar(new Nodo("}"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -922,8 +923,8 @@ Nodo PARAP():
 {Nodo nuevo = new Nodo("PARAP"); Nodo s,p,q; Token i;}
 {
 try{
-	(	s=DECLARAR() p=OPERACION()<puntoComa> q=OPCIONPARA(){nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(q);}
-	|   s=ASIGNACION() p=OPERACION()<puntoComa> q=OPCIONPARA(){nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(q);})
+	(	s=DECLARAR() p=OPERACION()<puntoComa> q=OPCIONPARA(){nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(new Nodo(";")); nuevo.insertar(q);}
+	|   s=ASIGNACION() p=OPERACION()<puntoComa> q=OPCIONPARA(){nuevo.insertar(s); nuevo.insertar(p); nuevo.insertar(new Nodo(";")); nuevo.insertar(q);})
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -940,8 +941,8 @@ Nodo OPCIONPARA():
 {Nodo nuevo = new Nodo("OPCIONPARA"); Nodo s; Token i;}
 {
 try{
-	(	i=<mas><mas>{nuevo.insertar(new Nodo(i.image));}
-	|   i=<menos><menos>{nuevo.insertar(new Nodo(i.image));})
+	(	i=<mas><mas>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(i.image)); }
+	|   i=<menos><menos>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo(i.image));  })
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -958,7 +959,7 @@ Nodo MIENTRAS():
 {Nodo nuevo = new Nodo("MIENTRAS"); Nodo s,l; Token i;}
 {
 try{
-		i=<mientras><parentesisA> s=OPERACION()<parentesisC><llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(l);}
+		i=<mientras><parentesisA> s=OPERACION()<parentesisC><llaveA> l=SENTENCIA()<llaveC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo("){"));nuevo.insertar(l);nuevo.insertar(new Nodo("}"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -975,7 +976,7 @@ Nodo IMPRIMIR():
 {Nodo nuevo = new Nodo("IMPRIMIR"); Nodo s; Token i;}
 {
 try{
-		i=<imprimir> s=OPERACION()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+		i=<imprimir> s=OPERACION()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(new Nodo(";"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -992,7 +993,7 @@ Nodo CONTAR():
 {Nodo nuevo = new Nodo("CONTAR"); Nodo s; Token i;}
 {
 try{
-		i=<contar><parentesisA><menormenor><seleccionar> s=SELECCIONAR()<mayormayor><parentesisC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);}
+		i=<contar><parentesisA><menormenor><seleccionar> s=SELECCIONAR()<mayormayor><parentesisC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(<<"));nuevo.insertar(s);nuevo.insertar(new Nodo(")>>"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -1009,8 +1010,8 @@ Nodo FUNCION():
 {Nodo nuevo = new Nodo("FUNCION"); Nodo s; Token i;}
 {
 try{
-	(	i=<backup> s=BACKUP()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
-	|	i=<restaurar> s=RESTAURAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);})
+	(	i=<backup> s=BACKUP()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(new Nodo(";"));}
+	|	i=<restaurar> s=RESTAURAR()<puntoComa>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); nuevo.insertar(new Nodo(";")); })
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -1083,8 +1084,8 @@ Nodo LLAMADA():
 {Nodo nuevo = new Nodo("LLAMADA"); Nodo s; Token i;}
 {
 try{
-	(	<parentesisA> s=LISTAVALORES()<parentesisC>{nuevo.insertar(s);}
-	|	<punto> s=OBJETO(){nuevo.insertar(s);}
+	(	<parentesisA> s=LISTAVALORES()<parentesisC>{nuevo.insertar(new Nodo("(")); nuevo.insertar(s); nuevo.insertar(new Nodo(")"));}
+	|	<punto> s=OBJETO(){nuevo.insertar(new Nodo(".")); nuevo.insertar(s);}
 	| 	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -1097,6 +1098,7 @@ try{
 	{return nuevo;}
 }
 }
+
 Nodo OBJETO():
 {Nodo nuevo = new Nodo("OBJETO"); Nodo s; Token i;}
 {
@@ -1205,6 +1207,8 @@ Nodo F():
 	|	i=<cadena>{ nuevo.insertar(new Nodo(i.image, "cadena"));}
 	|	i=<decimal>{ nuevo.insertar(new Nodo(i.image, "decimal"));}
 	|	i=<ffecha>{ nuevo.insertar(new Nodo(i.image, "fecha"));}
+	|	i=<verdadero>{ nuevo.insertar(new Nodo(i.image, "verdadero"));}
+	|	i=<falso>{ nuevo.insertar(new Nodo(i.image, "falso"));}
 	| 	<parentesisA> s=AND()<parentesisC>{ nuevo.insertar(s);}
 	|	i=<id> s=LLAMADA(){ nuevo.insertar(new Nodo(i.image, "entero")); nuevo.insertar(s);}
 	|	i=<fecha><parentesisA><parentesisC>{ nuevo.insertar(new Nodo(i.image));}
