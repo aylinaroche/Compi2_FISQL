@@ -1,5 +1,6 @@
 package USQL;
 
+import BaseDeDatos.RegistroMaestro;
 import java.util.ArrayList;
 
 /**
@@ -14,7 +15,7 @@ public class RecorridoSQL {
         Object result = null;
         // Nodo nodo = null;
         if (raiz != null) {
-            switch (raiz.texto) {
+            switch (raiz.texto) {   
                 case "INICIO":
                     result = Recorrido(raiz.hijos[0]);
                     break;
@@ -31,10 +32,11 @@ public class RecorridoSQL {
                     break;
                 case "SENTENCIAP":
                     switch (raiz.cantidadHijos) {
-                        case 0:
-                            break;
                         case 1:
                             result = Recorrido(raiz.hijos[0]);
+                            break;
+                        case 2:
+                            Recorrido(raiz.hijos[0]);
                             result = Recorrido(raiz.hijos[1]);
                             break;
                     }
@@ -99,7 +101,7 @@ public class RecorridoSQL {
                 case "CREAR":
                     switch (raiz.hijos[0].texto.toLowerCase()) {
                         case "base_datos":
-                            result = Recorrido(raiz.hijos[1]);
+                            RegistroMaestro.agregarBD(raiz.hijos[1].texto, "/home/aylin/NetBeansProjects/FISQL/BD/"+raiz.hijos[1].texto);
                             break;
                         case "tabla":
                             //result = Recorrido(raiz.hijos[2]);

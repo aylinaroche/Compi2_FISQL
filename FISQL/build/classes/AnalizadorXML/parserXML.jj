@@ -4,6 +4,7 @@ options {
 PARSER_BEGIN(parserXML)
 package AnalizadorXML;
 import fisql.*;
+import USQL.Nodo;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,7 @@ public class parserXML
                 InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
 
                 parserXML analizador = new parserXML(stream);
-                analizador.INICIO();
+                nodo =analizador.INICIO();
                 System.out.println("Se ha compilado con exito");
 
             } catch (ParseException e) {
@@ -32,46 +33,17 @@ PARSER_END(parserXML)
 
 TOKEN:
 {
-		<db: "db">
-	|	<nombreA: "<nombre>">
-	|	<nombreC: "</nombre>">
-	| 	<path: "path">
-	| 	<procedure: "procedure">
-	| 	<rows: "rows">
-	| 	<object: "object">
-	| 	<tipoInt: "int">
-	|	<tipoText: "text">
-	|	<tipoBool: "bool">
-	|	<proc: "proc">
-	|	<params: "params">
-	|	<crear: "crear">
-	|	<obj: "obj">
-	| 	<atr: "atr">
-	|	<tabla: "tabla">
-	|	<maestro: "maestro">
-	|	<basedatos: "baseDatos">
-}
-
-TOKEN:
-{
-		<parentesisA: "(">
-	| 	<parentesisC: ")">
-	|	<llaveA: "{">
-	|	<llaveC: "}">
-	|	<corcheteA: "[">
-	|	<corcheteC: "]">
-	|	<puntoComa: ";">
-	|	<dosPuntos: ":">
+		<etqA: "<">
+	|	<etqB: "</">
 	|	<etqC: ">">
-	|	<etqA: "<">
 }
 TOKEN:
 {
 		<entero: (["0"-"9"])+ >
 	|	<decimal: (["0"-"9"])+"."(["0"-"9"])+ >
 	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
-	|	<simbolo: "#"|"@"|"!"|"?"|"$"|"%"|"^"|"&"|"*"|"!"|"("|")"|"-"|"_"|"="|"<"|">"|"/"|"¿"|"¡"|"."|"["|"]">
 	|	<cadena: "\"" (~["\""])* "\"">
+	|	<cad: "\"" (~["\""])* "\"">
 	
 }
 SKIP:
@@ -81,26 +53,102 @@ SKIP:
 }
 
 
-void INICIO():{}
+Nodo INICIO():
+{Nodo nuevo = new Nodo("INICIO"); Nodo s;}
 {
-		ETIQUETA()
+try{
+	s = ETIQUETA()<EOF>{nuevo.insertar(s); return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	INICIO();
+	{return nuevo;}
 }
-void ETIQUETA():{}
+}
+
+Nodo ETIQUETA():
+{Nodo nuevo = new Nodo("ETIQUETA"); Nodo s,n;}
 {
-		<etqA>NOMBREETIQUETA()
+try{
+	s =ETQ() n=ETIQUETAP(){nuevo.insertar(s); nuevo.insertar(n); return nuevo;}
+	
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	ETIQUETA();
+	{return nuevo;}
 }
-void NOMBREETIQUETA():{}
+}
+
+Nodo ETIQUETAP():
+{Nodo nuevo = new Nodo("ETIQUETAP"); Nodo s,n;}
 {
-		<maestro><etqC>MAESTRO()<etqA><maestro><etqC>
-	|	<db>MAESTRO()<etqA><maestro><etqC>
+try{
+	s =ETQ() n=ETIQUETAP(){nuevo.insertar(s); nuevo.insertar(n); return nuevo;}
+	|	{return null;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	ETIQUETAP();
+	{return nuevo;}
 }
-void MAESTRO():{}
+}
+
+Nodo ETQ():
+{Nodo nuevo = new Nodo("ETQ"); Nodo s; Token i,j;}
 {
-		M()MAESTRO()
-	|	{}
+try{
+	<etqA> i=<id><etqC> s=OPCION()<etqB> j=<id><etqC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);  nuevo.insertar(new Nodo(j.image)); return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	ETQ();
+	{return nuevo;}
 }
-void M():{}
+}
+Nodo OPCION():
+{Nodo nuevo = new Nodo("OPCION"); Nodo s;}
 {
-		<etqA><db><etqC><nombreA><cadena><nombreC><etqA><db><etqC>
-		<etqA><db><etqC><path><cadena><path><etqA><db><etqC>
+try{
+		s =	ETIQUETA(){nuevo.insertar(s); return nuevo;}
+	|	s = CONTENIDO(){nuevo.insertar(s); return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	OPCION();
+	{return nuevo;}
 }
+}
+Nodo CONTENIDO():
+{Nodo nuevo = new Nodo("CONTENIDO"); Nodo s; Token i;}
+{
+try{
+		i =	<cadena>{nuevo.insertar(new Nodo(i.image,"cadena")); return nuevo;}
+	|   i = <id>{nuevo.insertar(new Nodo(i.image,"id")); return nuevo;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	CONTENIDO();
+	{return nuevo;}
+}
+}
+
+
