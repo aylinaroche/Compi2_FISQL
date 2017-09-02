@@ -1,6 +1,9 @@
 package USQL;
 
+import BaseDeDatos.Parametro;
 import BaseDeDatos.RegistroMaestro;
+import BaseDeDatos.RegistroObjeto;
+import BaseDeDatos.RegistroProcedure;
 import java.util.ArrayList;
 
 /**
@@ -10,12 +13,13 @@ import java.util.ArrayList;
 public class RecorridoSQL {
 
     public static ArrayList parametros = new ArrayList();
+    public static ArrayList vacia = new ArrayList();
 
     public Object Recorrido(Nodo raiz) {
         Object result = null;
         // Nodo nodo = null;
         if (raiz != null) {
-            switch (raiz.texto) {   
+            switch (raiz.texto) {
                 case "INICIO":
                     result = Recorrido(raiz.hijos[0]);
                     break;
@@ -67,18 +71,23 @@ public class RecorridoSQL {
                     break;
                 case "COMPLEMENTO":
                     switch (raiz.cantidadHijos) {
+                        case 0:
+                            ArrayList l = new ArrayList();
+                            result = l;
+                        case 1:
+                            ArrayList l2 = new ArrayList();
+                            l2.add(raiz.hijos[0].texto);
+                            result = l2;
+                            break;
                         case 2:
-                            result = Recorrido(raiz.hijos[1]);
+                            ArrayList l3 = (ArrayList) Recorrido(raiz.hijos[1]);
+                            l3.add(raiz.hijos[0].texto);
+                            result = l3;
                             break;
                         case 3:
-                            result = Recorrido(raiz.hijos[2]);
-                            break;
-                    }
-                    break;
-                case "COMPLEMENTOP":
-                    switch (raiz.cantidadHijos) {
-                        case 1:
-                            //result = Recorrido(raiz.hijos[0]);
+                            ArrayList l4 = (ArrayList) Recorrido(raiz.hijos[2]);
+                            l4.add(raiz.hijos[0].texto + " " + raiz.hijos[1].texto);
+                            result = l4;
                             break;
                     }
                     break;
@@ -88,7 +97,7 @@ public class RecorridoSQL {
                             result = Recorrido(raiz.hijos[1]);
                             break;
                         case "usar":
-                            //result = Recorrido(raiz.hijos[2]);
+                            RegistroMaestro.usarBD(raiz.hijos[1].texto);
                             break;
                         case "alterar":
                             result = Recorrido(raiz.hijos[1]);
@@ -101,56 +110,109 @@ public class RecorridoSQL {
                 case "CREAR":
                     switch (raiz.hijos[0].texto.toLowerCase()) {
                         case "base_datos":
-                            RegistroMaestro.agregarBD(raiz.hijos[1].texto, "/home/aylin/NetBeansProjects/FISQL/BD/"+raiz.hijos[1].texto);
+                            RegistroMaestro.agregarBD(raiz.hijos[1].texto, "/home/aylin/NetBeansProjects/FISQL/BD/" + raiz.hijos[1].texto);
                             break;
                         case "tabla":
                             //result = Recorrido(raiz.hijos[2]);
                             break;
                         case "objeto":
-                            result = Recorrido(raiz.hijos[1]);
+                            ArrayList param1 = (ArrayList) Recorrido(raiz.hijos[3]);
+                            RegistroObjeto.agregarObject(raiz.hijos[1].texto, param1);
                             break;
                         case "procedimiento":
-                            result = Recorrido(raiz.hijos[1]);
+                            if (raiz.cantidadHijos == 7) {
+                                RegistroProcedure.agregarProcedure(raiz.hijos[1].texto, raiz.hijos[5], vacia, "proc");
+                            } else {
+                                ArrayList param2 = (ArrayList) Recorrido(raiz.hijos[3]);
+                                RegistroProcedure.agregarProcedure(raiz.hijos[1].texto, raiz.hijos[6], param2, "proc");
+                            }
                             break;
                         case "funcion":
-                            result = Recorrido(raiz.hijos[1]);
+                            if (raiz.cantidadHijos == 8) {
+                                String tipo = Recorrido(raiz.hijos[4]).toString();
+                                RegistroProcedure.agregarProcedure(raiz.hijos[1].texto, raiz.hijos[6], vacia, tipo);
+                            } else {
+                                ArrayList param3 = (ArrayList) Recorrido(raiz.hijos[3]);
+                                Object tipo = Recorrido(raiz.hijos[5]);
+                                RegistroProcedure.agregarProcedure(raiz.hijos[1].texto, raiz.hijos[7], param3, tipo.toString());
+                            }
                             break;
                     }
                     break;
 
                 case "PARAMETROS":
                     switch (raiz.cantidadHijos) {
+                        case 3:
+                            result = Recorrido(raiz.hijos[0]);
+                            ArrayList l = (ArrayList) Recorrido(raiz.hijos[2]);
+                            ArrayList r = new ArrayList();
+                            r.add(new Parametro(raiz.hijos[1].texto, result.toString(), l));
+                            result = r;
+                            break;
                         case 4:
-                            result = Recorrido(raiz.hijos[1]);
+                            result = Recorrido(raiz.hijos[0]);
+                            ArrayList l2 = (ArrayList) Recorrido(raiz.hijos[2]);
+                            ArrayList list = (ArrayList) Recorrido(raiz.hijos[3]);
+                            list.add(new Parametro(raiz.hijos[1].texto, result.toString(), l2));
+                            result = list;
                             break;
                     }
                     break;
                 case "PARAMETROSP":
                     switch (raiz.cantidadHijos) {
-                        case 5:
+                        case 3:
+                            ArrayList list1 = new ArrayList();
                             result = Recorrido(raiz.hijos[1]);
-                            Recorrido(raiz.hijos[3]);
-                            Recorrido(raiz.hijos[4]);
+                            list1.add(new Parametro(raiz.hijos[1].texto, result.toString(), vacia));
+                            result = list1;
+                            break;
+                        case 4:
+                            ArrayList list2 = new ArrayList();
+                            result = Recorrido(raiz.hijos[1]);
+
+                            if (raiz.hijos[3].texto.equals("COMPLEMENTO")) {
+                                ArrayList l2 = (ArrayList) Recorrido(raiz.hijos[3]);
+                                list2.add(new Parametro(raiz.hijos[1].texto, result.toString(), l2));
+                            } else {
+                                list2 = (ArrayList) Recorrido(raiz.hijos[3]);
+                                list2.add(new Parametro(raiz.hijos[1].texto, result.toString(), vacia));
+                            }
+                            result = list2;
+                            break;
+                        case 5:
+                            ArrayList list = (ArrayList) Recorrido(raiz.hijos[4]);
+                            result = Recorrido(raiz.hijos[1]);
+                            ArrayList l = (ArrayList) Recorrido(raiz.hijos[3]);
+                            list.add(new Parametro(raiz.hijos[1].texto, result.toString(), l));
+                            result = list;
                             break;
                     }
                     break;
                 case "PARAMETROSVAR":
                     switch (raiz.cantidadHijos) {
-                        case 0:
+                        case 2:
+                            ArrayList list1 = new ArrayList();
+                            list1.add(new Parametro(raiz.hijos[1].texto, Recorrido(raiz.hijos[0]).toString(), vacia));
+                            result = list1;
                             break;
                         case 3:
-                            result = Recorrido(raiz.hijos[0]);
-                            result = Recorrido(raiz.hijos[1]);
+                            ArrayList list = (ArrayList) Recorrido(raiz.hijos[2]);
+                            list.add(new Parametro(raiz.hijos[1].texto, Recorrido(raiz.hijos[0]).toString(), vacia));
+                            result = list;
                             break;
                     }
                     break;
                 case "PARAMETROSVARP":
                     switch (raiz.cantidadHijos) {
-                        case 0:
+                        case 3:
+                            ArrayList list1 = new ArrayList();
+                            list1.add(new Parametro(raiz.hijos[2].texto, Recorrido(raiz.hijos[1]).toString(), vacia));
+                            result = list1;
                             break;
                         case 4:
-                            result = Recorrido(raiz.hijos[1]);
-                            result = Recorrido(raiz.hijos[3]);
+                            ArrayList list = (ArrayList) Recorrido(raiz.hijos[3]);
+                            list.add(new Parametro(raiz.hijos[2].texto, Recorrido(raiz.hijos[1]).toString(), vacia));
+                            result = list;
                             break;
                     }
                     break;

@@ -2,6 +2,8 @@ package fisql;
 
 import AnalizadorSQL.*;
 import BaseDeDatos.RegistroMaestro;
+import BaseDeDatos.RegistroObjeto;
+import BaseDeDatos.RegistroProcedure;
 import USQL.*;
 import java.io.IOException;
 
@@ -13,9 +15,6 @@ public class FISQL {
 
     public static void main(String[] args) throws ParseException, IOException {
 
-        RegistroMaestro rm = new RegistroMaestro();
-        rm.cargarBD();
-
         Nodo nodo = parserSQL.compilar(textoSQL1());
         RecorridoSQL r = new RecorridoSQL();
         r.Recorrido(nodo);
@@ -24,13 +23,13 @@ public class FISQL {
         //RecorridoXML x = new RecorridoXML();
         //x.Recorrido(n);
         imprimirDatos();
-        crearArchivos();
-
+        BaseDeDatos.BaseDeDatos.crearArchivos();
     }
 
     public static String textoSQL1() {
 
-        String texto = "crear base_datos Proyecto1;\n"
+        String texto = ""
+                + "crear base_datos Proyecto1;\n"
                 + "crear base_datos db1;\n"
                 + "crear base_datos db1;\n"
                 + "\n"
@@ -42,7 +41,7 @@ public class FISQL {
                 + "USAR Proyecto1;\n"
                 + "CREAR PROCEDIMIENTO set_Salario (DOUBLE @salario, DOUBLE\n"
                 + "@comision, INTEGER @codigo){\n"
-                + "	ACTUALIZAR TABLA trabajador (salario) VALORES (@salario);\n"
+                + "	actualizar tabla trabajador (salario) VALORES (@salario);\n"
                 + "}\n"
                 + "\n"
                 + "CREAR FUNCION suma (INTEGER @var1, INTEGER @var2) INTEGER{\n"
@@ -344,10 +343,8 @@ public class FISQL {
 
     public static void imprimirDatos() {
         RegistroMaestro.imprimir();
+        RegistroProcedure.imprimir();
+        RegistroObjeto.imprimir();
     }
 
-    public static void crearArchivos() {
-        RegistroMaestro rm = new RegistroMaestro();
-        rm.generarArchivo();
-    }
 }

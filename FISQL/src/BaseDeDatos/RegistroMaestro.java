@@ -54,6 +54,7 @@ public class RegistroMaestro {
     }
 
     public static void agregarBD(String nombre, String path) {
+        
         for (int i = 0; i < listaDB.size(); i++) {
             DB db = listaDB.get(i);
             if (nombre.equals(db.nombre)) {
@@ -64,7 +65,19 @@ public class RegistroMaestro {
         listaDB.add(new DB(path, nombre));
         File folder = new File(path);
         folder.mkdir();
+        RegistroDB r = new RegistroDB();
+        r.generarArchivo(nombre);
+    }
 
+    public static void usarBD(String nombre) {
+        for (int i = 0; i < RegistroMaestro.listaDB.size(); i++) {
+            DB db = RegistroMaestro.listaDB.get(i);
+            if (nombre.equals(db.nombre)) {
+                BaseDeDatos.DBActual = nombre;
+                return;
+            }
+        }
+        Errores.agregarErrorSQL(nombre, "Error semantico", "No existe la base de datos indicada", 0, 0);
     }
 
     public void generarArchivo() {
@@ -88,7 +101,7 @@ public class RegistroMaestro {
     }
 
     public static void imprimir() {
-        System.out.println("* * * * * * * * * * DB * * * * * * * * * *");
+        System.out.println("\n* * * * * * * * * * DB * * * * * * * * * *");
         for (int i = 0; i < RegistroMaestro.listaDB.size(); i++) {
             DB db = RegistroMaestro.listaDB.get(i);
             System.out.println("> " + db.nombre + " - " + db.path);

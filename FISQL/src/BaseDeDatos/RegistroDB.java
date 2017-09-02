@@ -12,33 +12,38 @@ import java.util.ArrayList;
  */
 public class RegistroDB {
 
-    public static String pathProcedimiento = "";
-    public static String pathObjeto = "";
-    public static ArrayList listaTabla = new ArrayList();
+    public static ArrayList<tabla> listaTabla = new ArrayList();
 
-    public void generarArchivo() {
-        File fichero = new File("/home/aylin/NetBeansProjects/FISQL/BD/" + BaseDeDatos.DBActual + "/DB.xml");
+    public void generarArchivo(String nombre) {
+        File fichero = new File("/home/aylin/NetBeansProjects/FISQL/BD/" + nombre + "/DB.xml");
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(fichero));
-            bw.write("<procedure>");
-            bw.write("  \"" + pathProcedimiento + "\"");
-            bw.write("</procedure>");
-            bw.write("<object>");
-            bw.write("  \"" + pathObjeto + "\"");
-            bw.write("</object>");
+            bw.write("<procedure>\n");
+            bw.write("  \"/home/aylin/NetBeansProjects/FISQL/BD/" + nombre + "/proc.xml\"\n");
+            bw.write("</procedure>\n");
+            bw.write("<object>\n");
+            bw.write("  \"/home/aylin/NetBeansProjects/FISQL/BD/" + nombre + "object.xml\"\n");
+            bw.write("</object>\n");
 
             for (int i = 0; i < listaTabla.size(); i++) {
-//                DB db = listaTabla.get(i);
-//
-//                bw.write("<BD>\n");
-//                bw.write("  <nombre>" + db.nombre + "</nombre>\n");
-//                bw.write("  <path>\"" + db.path + "\"</path>\n");
-//                bw.write("</BD>\n");
+                tabla tb = listaTabla.get(i);
+
+                bw.write("<tabla>\n");
+                bw.write("  <nombre>" + tb.nombre + "</nombre>\n");
+                bw.write("  <path>\"" + tb.path + "\"</path>\n");
+                for (int j = 0; j < tb.tuplas.size(); j++) {
+                    tupla tp = tb.tuplas.get(j);
+                    bw.write("  <tupla>\n");
+                    bw.write("      <" + tp.tipo + ">\n" + tp.nombre + "</" + tp.tipo + ">\n");
+                    bw.write("  </tupla>\n");
+                }
+
+                bw.write("</tabla>\n");
 
             }
             bw.close();
         } catch (IOException ex) {
-            System.out.println("ERROR al generar el archivo maestro");
+            System.out.println("ERROR al generar el archivo db: "+ex);
         }
 
     }

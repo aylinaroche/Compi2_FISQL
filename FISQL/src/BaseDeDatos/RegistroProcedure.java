@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package BaseDeDatos;
 
 import AnalizadorXML.parserXML;
@@ -22,30 +17,30 @@ import java.util.ArrayList;
  *
  * @author aylin
  */
-public class RegistroObjeto {
+public class RegistroProcedure {
 
-    public static ArrayList<obj> listaObject = new ArrayList();
+    public static ArrayList<proc> listaProcedure = new ArrayList();
     String ruta = "/home/aylin/NetBeansProjects/FISQL/BD/";
     String cadena = "";
 
-    public void cargarObject() throws IOException {
+    public void cargarProcedure() throws IOException {
         if ("".equals(BaseDeDatos.DBActual)) {
             Errores.agregarErrorSQL("bd", "Error Semantico", "No se ha indicado ninguna bd", 0, 0);
             return;
         }
-        File fichero = new File(ruta + BaseDeDatos.DBActual + "/obj.xml");
+        File fichero = new File(ruta + BaseDeDatos.DBActual + "/proc.xml");
         if (fichero.exists()) {
-            String cadena = "";
+            String cad = "";
             try {
                 FileReader fr = new FileReader(fichero);
                 try (BufferedReader b = new BufferedReader(fr)) {
                     String linea;
                     while ((linea = b.readLine()) != null) {
-                        cadena += linea + "\n";
+                        cad += linea + "\n";
                         //System.out.println(cadena);
                     }
-                    if (!"".equals(cadena)) {
-                        Nodo nodo = parserXML.compilar(cadena);
+                    if (!"".equals(cad)) {
+                        Nodo nodo = parserXML.compilar(cad);
                         RecorridoXML r = new RecorridoXML();
                         r.Recorrido(nodo);
                     }
@@ -63,19 +58,23 @@ public class RegistroObjeto {
         }
     }
 
-    public static void agregarObject(String nombre, ArrayList atributos) {
+    public static void agregarProcedure(String nombre, Nodo instruccion, ArrayList parametros, String tipo) {
         if("".equals(BaseDeDatos.DBActual)){
             Errores.agregarErrorSQL("BD", "Error Semantico", "No se ha indicado una base de datos", 0, 0);
             return;
         }
-        for (int i = 0; i < listaObject.size(); i++) {
-            obj p = listaObject.get(i);
+        for (int i = 0; i < listaProcedure.size(); i++) {
+            proc p = listaProcedure.get(i);
             if (nombre.equals(p.nombre)) {
                 Errores.agregarErrorSQL(nombre, "Error Semantico", "Ya existe el nombre " + nombre, i, i);
                 return;
             }
         }
-        listaObject.add(new obj(nombre, atributos));
+        RegistroProcedure p = new RegistroProcedure();
+        String instruc = p.generarInstruccion(instruccion);
+       // System.out.println(instruc);
+
+        listaProcedure.add(new proc(nombre, tipo, parametros, instruc));
     }
 
     public void generarArchivo() {
@@ -83,20 +82,21 @@ public class RegistroObjeto {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(fichero));
 
-            for (int i = 0; i < listaObject.size(); i++) {
-                obj p = listaObject.get(i);
+            for (int i = 0; i < listaProcedure.size(); i++) {
+                proc p = listaProcedure.get(i);
 
-                bw.write("<OBJ>\n");
+                bw.write("<PROC>\n");
                 bw.write("  <nombre>" + p.nombre + "</nombre>\n");
-                if (!p.listaAtributos.isEmpty()) {
-                    bw.write("  <atr>\n");
-                    for (int j = 0; j < p.listaAtributos.size(); j++) {
-                        Parametro pm = p.listaAtributos.get(j);
+                if (!p.listaParametros.isEmpty()) {
+                    bw.write("  <params>\n");
+                    for (int j = 0; j < p.listaParametros.size(); j++) {
+                        Parametro pm = p.listaParametros.get(j);
                         bw.write("      <" + pm.tipo + ">" + pm.nombre + "</" + pm.tipo + ">\n");
                     }
-                    bw.write("  </atr>\n");
+                    bw.write("  </params>\n");
                 }
-                bw.write("</OBJ>\n");
+                bw.write("  <src>\"" + p.intrucciones + "\"</src>\n");
+                bw.write("</PROC>\n");
 
             }
             bw.close();
@@ -107,21 +107,39 @@ public class RegistroObjeto {
     }
 
     public static void imprimir() {
-        System.out.println("\n* * * * * * * * * * OBJECT * * * * * * * * * *");
-        for (int i = 0; i < RegistroObjeto.listaObject.size(); i++) {
-            obj o = RegistroObjeto.listaObject.get(i);
-            System.out.println("> " + o.nombre + " - " + o.listaAtributos.size());
+        System.out.println("\n* * * * * * * * * * PROCEDURE * * * * * * * * * *");
+        for (int i = 0; i < RegistroProcedure.listaProcedure.size(); i++) {
+            proc db = RegistroProcedure.listaProcedure.get(i);
+            System.out.println("> " + db.nombre + " - " + db.tipo + " - " + db.intrucciones + " - " + db.listaParametros.size());
         }
     }
+
+    public String generarInstruccion(Nodo nodo) {
+
+        if (nodo.cantidadHijos > 0) {
+            for (int i = 0; i < nodo.cantidadHijos; i++) {
+                generarInstruccion(nodo.hijos[i]);
+            }
+
+        } else {
+            cadena += nodo.texto + " ";
+        }
+        return cadena;
+    }
+
 }
 
-class obj {
+class proc {
 
     String nombre;
-    ArrayList<Parametro> listaAtributos;
+    String tipo;
+    ArrayList<Parametro> listaParametros;
+    String intrucciones;
 
-    obj(String n, ArrayList a) {
+    proc(String n, String t, ArrayList p, String i) {
         this.nombre = n;
-        this.listaAtributos = a;
+        this.listaParametros = p;
+        this.intrucciones = i;
+        this.tipo = t;
     }
 }

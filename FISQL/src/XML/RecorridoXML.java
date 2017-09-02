@@ -15,7 +15,7 @@ public class RecorridoXML {
 
     public Object Recorrido(Nodo raiz) {
         Object result = null;
-        // Nodo nodo = null;
+      
         if (raiz != null) {
             switch (raiz.texto) {
                 case "INICIO":
