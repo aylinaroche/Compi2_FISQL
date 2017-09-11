@@ -143,77 +143,83 @@ public interface parserSQLConstants {
   /** RegularExpression Id. */
   int restaurar = 66;
   /** RegularExpression Id. */
-  int parentesisA = 67;
+  int colocar = 67;
   /** RegularExpression Id. */
-  int parentesisC = 68;
+  int unico = 68;
   /** RegularExpression Id. */
-  int llaveA = 69;
+  int parentesisA = 69;
   /** RegularExpression Id. */
-  int llaveC = 70;
+  int parentesisC = 70;
   /** RegularExpression Id. */
-  int corcheteA = 71;
+  int llaveA = 71;
   /** RegularExpression Id. */
-  int corcheteC = 72;
+  int llaveC = 72;
   /** RegularExpression Id. */
-  int puntoComa = 73;
+  int corcheteA = 73;
   /** RegularExpression Id. */
-  int dosPuntos = 74;
+  int corcheteC = 74;
   /** RegularExpression Id. */
-  int mas = 75;
+  int puntoComa = 75;
   /** RegularExpression Id. */
-  int menos = 76;
+  int dosPuntos = 76;
   /** RegularExpression Id. */
-  int por = 77;
+  int mas = 77;
   /** RegularExpression Id. */
-  int div = 78;
+  int menos = 78;
   /** RegularExpression Id. */
-  int potencia = 79;
+  int por = 79;
   /** RegularExpression Id. */
-  int igualIgual = 80;
+  int div = 80;
   /** RegularExpression Id. */
-  int diferente = 81;
+  int potencia = 81;
   /** RegularExpression Id. */
-  int mayormayor = 82;
+  int igualIgual = 82;
   /** RegularExpression Id. */
-  int menormenor = 83;
+  int diferente = 83;
   /** RegularExpression Id. */
-  int mayor = 84;
+  int mayormayor = 84;
   /** RegularExpression Id. */
-  int menor = 85;
+  int menormenor = 85;
   /** RegularExpression Id. */
-  int mayorIgual = 86;
+  int mayor = 86;
   /** RegularExpression Id. */
-  int menorIgual = 87;
+  int menor = 87;
   /** RegularExpression Id. */
-  int or = 88;
+  int mayorIgual = 88;
   /** RegularExpression Id. */
-  int and = 89;
+  int menorIgual = 89;
   /** RegularExpression Id. */
-  int not = 90;
+  int or = 90;
   /** RegularExpression Id. */
-  int coma = 91;
+  int and = 91;
   /** RegularExpression Id. */
-  int igual = 92;
+  int not = 92;
   /** RegularExpression Id. */
-  int punto = 93;
+  int coma = 93;
   /** RegularExpression Id. */
-  int entero = 94;
+  int igual = 94;
   /** RegularExpression Id. */
-  int decimal = 95;
+  int punto = 95;
   /** RegularExpression Id. */
-  int id = 96;
+  int entero = 96;
   /** RegularExpression Id. */
-  int idVar = 97;
+  int decimal = 97;
   /** RegularExpression Id. */
-  int simbolo = 98;
+  int id = 98;
   /** RegularExpression Id. */
-  int cadena = 99;
+  int idVar = 99;
   /** RegularExpression Id. */
-  int ffecha = 100;
+  int simbolo = 100;
   /** RegularExpression Id. */
-  int comentarioSimple = 108;
+  int cadena = 101;
   /** RegularExpression Id. */
-  int comentarioMulti = 109;
+  int ffecha = 102;
+  /** RegularExpression Id. */
+  int hora = 103;
+  /** RegularExpression Id. */
+  int comentarioSimple = 111;
+  /** RegularExpression Id. */
+  int comentarioMulti = 112;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -232,7 +238,7 @@ public interface parserSQLConstants {
     "\"double\"",
     "\"bool\"",
     "\"date\"",
-    "\"dateTime\"",
+    "\"datetime\"",
     "\"crear\"",
     "\"base_datos\"",
     "\"tabla\"",
@@ -287,6 +293,8 @@ public interface parserSQLConstants {
     "\"por\"",
     "\"de\"",
     "\"restaurar\"",
+    "\"colocar\"",
+    "\"unico\"",
     "\"(\"",
     "\")\"",
     "\"{\"",
@@ -321,6 +329,7 @@ public interface parserSQLConstants {
     "<simbolo>",
     "<cadena>",
     "<ffecha>",
+    "<hora>",
     "\" \"",
     "\"\\r\\n\"",
     "\"\\t\"",

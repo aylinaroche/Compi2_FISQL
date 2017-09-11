@@ -1,11 +1,16 @@
 package fisql;
 
 import AnalizadorSQL.*;
+import BaseDeDatos.RegistroDB;
 import BaseDeDatos.RegistroMaestro;
 import BaseDeDatos.RegistroObjeto;
 import BaseDeDatos.RegistroProcedure;
+import BaseDeDatos.RegistroTabla;
+import BaseDeDatos.RegistroUsuario;
 import USQL.*;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -13,17 +18,24 @@ import java.io.IOException;
  */
 public class FISQL {
 
+    //public static parserSQL parser = null;
     public static void main(String[] args) throws ParseException, IOException {
+        try {
+            Variables.pilaAmbito.push("Global");
+            RegistroMaestro m = new RegistroMaestro();
+            m.cargarBD();
+            RegistroUsuario u = new RegistroUsuario();
+            u.cargarBD();
 
-        Nodo nodo = parserSQL.compilar(textoSQL1());
-        RecorridoSQL r = new RecorridoSQL();
-        r.Recorrido(nodo);
+            Nodo nodo = parserSQL.compilar(textoSQL1());
+            RecorridoSQL r = new RecorridoSQL();
+            r.Recorrido(nodo);
 
-        //Nodo n = parserXML.compilar(textoXML1());
-        //RecorridoXML x = new RecorridoXML();
-        //x.Recorrido(n);
-        imprimirDatos();
-        BaseDeDatos.BaseDeDatos.crearArchivos();
+            imprimirDatos();
+            BaseDeDatos.BaseDeDatos.crearArchivos();
+        } catch (CloneNotSupportedException ex) {
+            Logger.getLogger(FISQL.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public static String textoSQL1() {
@@ -31,47 +43,64 @@ public class FISQL {
         String texto = ""
                 + "crear base_datos Proyecto1;\n"
                 + "crear base_datos db1;\n"
-                + "crear base_datos db1;\n"
                 + "\n"
-                + "crear tabla Estudiante (INTEGER id Llave_Primaria Autoincrementable, TEXT Nombre No Nulo, DATE fh_nac No Nulo, BOOL\n"
-                + "trabaja);\n"
+                + "USAR Proyecto1;"
+                + "\n"
+                + "crear tabla Curso ("
+                + "     INTEGER id Llave_Primaria Autoincrementable, "
+                + "     TEXT Nombre No Nulo);\n"
+                + "\n"
+                + "crear tabla Estudiante ("
+                + "     INTEGER id Llave_Primaria Autoincrementable, "
+                + "     TEXT Nombre No Nulo, "
+                + "     DATE fh_nac No Nulo, "
+                + "     BOOL trabaja,"
+                + "     INTEGER curso Llave_Foranea Curso id nulo);\n"
                 + "\n"
                 + "crear objeto Empresa (INTEGER codigo, TEXT nombre, TEXT telefono);\n"
                 + "\n"
-                + "USAR Proyecto1;\n"
                 + "CREAR PROCEDIMIENTO set_Salario (DOUBLE @salario, DOUBLE\n"
                 + "@comision, INTEGER @codigo){\n"
-                + "	actualizar tabla trabajador (salario) VALORES (@salario);\n"
+                + "	actualizar tabla Estudiante (salario) VALORES (@salario);\n"
                 + "}\n"
                 + "\n"
                 + "CREAR FUNCION suma (INTEGER @var1, INTEGER @var2) INTEGER{\n"
-                + "	Set_Salario(8500.00,964.50);\n"
                 + "	@var_ejemplo = suma(10,15);\n"
                 + "	RETORNO @var1 * @var2;\n"
                 + "}\n"
                 + "\n"
+                + ""
+                + "CREAR USUARIO usuario1 COLOCAR password = \"holaMundo\";"
                 //                + "\n"
                 //                + "ALTERAR TABLA Estudiante AGREGAR (INTEGER edad, TEXT direccion);\n"
                 //                + "ALTERAR TABLA Estudiante QUITAR trabaja;\n"
                 //                + "\n"
                 //                + "ALTERAR OBJETO empresa AGREGAR (INTEGER nit);\n"
-                //                + "ALTERAR OBJETO empresa QUITAR direccion, nit;\n"
+                //                + "ALTERAR OBJETO empresa QUITAR telefono;\n"
                 //                + "\n"
-                //                + "ALTERAR USUARIO Admin CAMBIAR password = \"1234\";\n"
+                //                + "ALTERAR USUARIO usuario1 CAMBIAR password = \"1234\";\n"
                 //                + "\n"
                 //                + "ELIMINAR TABLA estudiante;\n"
                 //                + "ELIMINAR BASE_DATOS Proyecto1;\n"
                 //                + "ELIMINAR OBJETO empresa;\n"
-                //                + "ELIMINAR USER usuario1;\n"
+                //                + "ELIMINAR USUARIO usuario1;\n"
                 //                + "\n"
-                //                + "INSERTAR EN TABLA estudiante (\"Jose Luis Figueroa\", 10-10-1994,1);\n"
+                //                + "INSERTAR EN TABLA estudiante (\"Jose\", 10-10-1994,1);\n"
+                //                + "INSERTAR EN TABLA estudiante (\"Aylin\", 10-10-1994,1);\n"
+                //                + "INSERTAR EN TABLA estudiante (\"Alejandro\", 10-10-1994,1);\n"
+                //                + "INSERTAR EN TABLA estudiante (\"Luis\", 10-10-1994,1);\n"
+                //                + "INSERTAR EN TABLA Curso (\"Lenguajes\");\n"
+                //                + "INSERTAR EN TABLA Curso (\"Matematica\");\n"
+                //                + ""
+                //                + "INSERTAR EN TABLA estudiante (\"Juan\", 10-10-1994, nulo,1);\n"
                 //                + "\n"
-                //                + "INSERTAR EN TABLA estudiante (Nombre, fh_nac) VALORES (\"Jose Luis\n"
-                //                + "Figueroa\", 10-10-1994);\n"
+                //                + "INSERTAR EN TABLA estudiante (Nombre, curso, fh_nac) VALORES (\"Jose Luis\n"
+                //                + "Figueroa\", 2, 10-10-1994);\n"
                 //                + "\n"
                 //                + "ACTUALIZAR TABLA estudiante (nombre, trabaja) VALORES (\"Jose Luis\n"
                 //                + "Martinez Hernandez\",1) DONDE nombre == \"Jose Luis Martinez\" &&\n"
                 //                + "trabaja == 0;\n"
+                //                + ""
                 //                + "ACTUALIZAR TABLA estudiante (nombre, trabaja) VALORES (\"Carlos\n"
                 //                + "Enriquez\",0);\n"
                 //                + "\n"
@@ -87,6 +116,7 @@ public class FISQL {
                 //                + "SELECCIONAR * DE estudiante;\n"
                 //                + "\n"
                 //                + "OTORGAR PERMISOS usuario1, Proyecto1.estudiante;\n"
+                //                + "OTORGAR PERMISOS usuario1, Proyecto1.curso;\n"
                 //                + "OTORGAR PERMISOS usuario1, Proyecto1.*;\n"
                 //                + "\n"
                 //                + "DENEGAR PERMISOS usuario1, Proyecto1.estudiante;\n"
@@ -95,44 +125,59 @@ public class FISQL {
                 //                + "CREAR PROCEDIMIENTO set_Salario (DOUBLE @salario, DOUBLE\n"
                 //                + "@comision, INTEGER @codigo){\n"
                 //                + "\n"
-                //                + "	DECLARAR @variable1, @variable2 INTEGER = 23;\n"
-                //                + "	DECLARAR @ejemplo TEXT = \"Hola mundo\";\n"
-                //                + "	DECLARAR @empresa1 emp;\n"
+                //                //                + "	DECLARAR @variable1, @variable2 INTEGER = 23;\n"
+                //                //                + "	DECLARAR @ejemplo TEXT = \"Hola mundo\";\n"
+//                + "	DECLARAR @empresa1 Empresa;\n"
+//                + "	DECLARAR @empresa2 Empresa;\n"
+                //                //                + "	DECLARAR @varBool BOOL = !(falso);\n"
+                //                + "     declarar @a, @b INTEGER = 5 ;"
                 //                + "\n"
-                //                + "	@a = 3 * 23;\n"
-                //                + "	@ejemplo = saludo(\"Hola\");\n"
+                //                // + "	@a = 3 * 23;\n"
+                //                //+ "	@ejemplo = \"Hola\";\n"
                 //                + "\n"
-                //                + "	@empresa1.nit = 87654321-0;\n"
+//                + "	@empresa1.telefono = 11111111;\n"
+//                + "	@empresa2.telefono = 22222222;\n"
+//                + "	imprimir(\" EMPRESA1 = \" + @empresa1.telefono);\n"
+//                + "	imprimir(\" EMPRESA2 = \" + @empresa2.telefono);\n"
+                //                + "     @a = suma(5,4);"
+                //                + "	imprimir(\" MULT = \" + @a);\n"
+                //                //   + "suma(5,4);"
                 //                + "\n"
-                //                + "	SI( @a < 10 ){\n"
+                //                + "	SI( @a > 10 ){\n"
                 //                + "		@b = 23;\n"
                 //                + "	}\n"
                 //                + "\n"
                 //                + "	SI( @a < 10 ){\n"
-                //                + "		@b = 23;\n"
+                //                + "		@a = 2;\n"
                 //                + "	}SINO{\n"
-                //                + "		@b = 46;\n"
+                //                + "		@a = 1;\n"
                 //                + "	}\n"
+                //                
+                //                + "	DECLARAR @date DATE = 05-10-2010;\n"
+                //                + "	DECLARAR @dateTime DATETIME = 20-09-2011 02:01:20;\n"
                 //                + "\n"
                 //                + "	SELECCIONA ( @a * 15 ){\n"
                 //                + "		CASO 10 :\n"
                 //                + "			@b = 23;\n"
-                //                + "		CASO 15 :\n"
-                //                + "			@b = 23;\n"
+                //                + "		CASO 5 :\n"
+                //                + "			@b = 50;\n"
                 //                + "		DEFECTO :\n"
-                //                + "			@b = 23;\n"
+                //                + "			@b = 30;\n"
                 //                + "	}\n"
                 //                + "\n"
-                //                + "	PARA(DECLARAR @a INTEGER = 10; @a > 0; --){\n"
-                //                + "		@b = 23;\n"
+                //                + "	PARA(DECLARAR @i INTEGER = 10; @i > 0; --){\n"
+                //                + "         IMPRIMIR(\"PARA= \" + @i);\n"
                 //                + "	}\n"
-                //                + "\n"
-                //                + "	MIENTRAS( @a < 10 ){\n"
+                // + "\n"
+                //                + "	MIENTRAS( @a < 5 ){\n"
+                //                + "             IMPRIMIR(\"MIENTRAS= \" + @a);\n"
                 //                + "		@a = @a + 1;\n"
                 //                + "		DETENER;\n"
+                //                + "             IMPRIMIR(\"MIENTRAS= \" + @a);\n"
                 //                + "	}\n"
                 //                + "\n"
-                //                + "	IMPRIMIR(\"Hola mundo\");\n"
+                //                + "	imprimir(\"Fecha = \"+ FECHA());\n"
+                //                + "	imprimir(\"Hora = \"+ FECHA_HORA());\n"
                 //                + "	@fecha = FECHA();\n"
                 //                + "	@fecha_h = FECHA_HORA();\n"
                 //                + "\n"
@@ -143,7 +188,10 @@ public class FISQL {
                 //                + "	RESTAURAR COMPLETO \"/home/usuario/backups/backup_prueba.zip\";\n"
                 //                + "	\n"
                 //                + "	CONTAR(<<SELECCIONAR * DE estudiante>>);\n"
-                //    + "}
+                // + "}"
+                + ""
+                //   + "	Set_Salario(8500.00,964.50,1);\n"
+                + ""
                 + "";
         return texto;
     }
@@ -329,22 +377,14 @@ public class FISQL {
         return texto;
     }
 
-    public static String textoXML2() {
-
-        String texto = "";
-        return texto;
-    }
-
-    public static String textoXML3() {
-
-        String texto = "";
-        return texto;
-    }
-
     public static void imprimirDatos() {
         RegistroMaestro.imprimir();
         RegistroProcedure.imprimir();
         RegistroObjeto.imprimir();
+        RegistroDB.imprimir();
+        RegistroTabla.imprimir();
+        RegistroUsuario.imprimir();
+        Variables.imprimirVariables();
     }
 
 }

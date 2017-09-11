@@ -54,7 +54,7 @@ public class RegistroMaestro {
     }
 
     public static void agregarBD(String nombre, String path) {
-        
+
         for (int i = 0; i < listaDB.size(); i++) {
             DB db = listaDB.get(i);
             if (nombre.equals(db.nombre)) {
@@ -70,11 +70,32 @@ public class RegistroMaestro {
     }
 
     public static void usarBD(String nombre) {
+        BaseDeDatos.crearArchivos();
+        BaseDeDatos.limpiarListas();
         for (int i = 0; i < RegistroMaestro.listaDB.size(); i++) {
             DB db = RegistroMaestro.listaDB.get(i);
             if (nombre.equals(db.nombre)) {
                 BaseDeDatos.DBActual = nombre;
+                try {
+                    BaseDeDatos.cargarBD();
+                } catch (IOException ex) {
+                    System.out.println("Error al cargar TODOS los datos: " + ex);
+                }
                 return;
+            }
+        }
+        Errores.agregarErrorSQL(nombre, "Error semantico", "No existe la base de datos indicada", 0, 0);
+    }
+
+    public static void eliminarBD(String nombre) {
+        for (int i = 0; i < listaDB.size(); i++) {
+            DB db = listaDB.get(i);
+            if (nombre.equals(db.nombre)) {
+                listaDB.remove(i);
+                File f = new File("/home/aylin/NetBeansProjects/FISQL/BD/" + nombre);
+                if (f.delete()) {
+                    System.out.println("Se ha borrado correctamente.");
+                }
             }
         }
         Errores.agregarErrorSQL(nombre, "Error semantico", "No existe la base de datos indicada", 0, 0);

@@ -8,8 +8,7 @@ public class Nodo {
     public Nodo padre; 
     public Nodo hijos[];
     public String tipo; 
-    
-    public Nodo nodoHeredado; //hermanos o padre
+    public Nodo heredado; 
 
     public Nodo(String texto) {
         this.texto = texto;

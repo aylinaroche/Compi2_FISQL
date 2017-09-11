@@ -26,6 +26,8 @@ public interface parserXMLConstants {
   int cadena = 7;
   /** RegularExpression Id. */
   int cad = 8;
+  /** RegularExpression Id. */
+  int idVar = 9;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -41,6 +43,7 @@ public interface parserXMLConstants {
     "<id>",
     "<cadena>",
     "<cad>",
+    "<idVar>",
     "\" \"",
     "\"\\r\\n\"",
     "\"\\t\"",

@@ -4,11 +4,14 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/RegistroObjeto.java</file>
+            <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/RegistroMaestro.java</file>
+            <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/RegistroTabla.java</file>
             <file>file:/home/aylin/NetBeansProjects/FISQL/src/XML/RecorridoXML.java</file>
+            <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/RegistroUsuario.java</file>
             <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/RegistroProcedure.java</file>
-            <file>file:/home/aylin/NetBeansProjects/FISQL/src/USQL/RecorridoSQL.java</file>
             <file>file:/home/aylin/NetBeansProjects/FISQL/src/fisql/FISQL.java</file>
             <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/BaseDeDatos.java</file>
+            <file>file:/home/aylin/NetBeansProjects/FISQL/src/BaseDeDatos/RegistroDB.java</file>
         </group>
     </open-files>
 </project-private>

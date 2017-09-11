@@ -1,14 +1,15 @@
 package BaseDeDatos;
 
-import AnalizadorXML.parserXML;
+import USQL.Objetos.Parametro;
+import AnalizadorSQL.ParseException;
+import AnalizadorSQL.parserSQL;
 import USQL.Nodo;
-import XML.RecorridoXML;
+import USQL.Objetos.Proced;
+import USQL.RecorridoSQL;
+import USQL.Variables;
 import fisql.Errores;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,71 +20,40 @@ import java.util.ArrayList;
  */
 public class RegistroProcedure {
 
-    public static ArrayList<proc> listaProcedure = new ArrayList();
+    public static ArrayList<Proced> listaProcedure = new ArrayList();
     String ruta = "/home/aylin/NetBeansProjects/FISQL/BD/";
     String cadena = "";
 
-    public void cargarProcedure() throws IOException {
+    public static void agregarProcedure(String nombre, Object instruccion, ArrayList parametros, String tipo) {
         if ("".equals(BaseDeDatos.DBActual)) {
-            Errores.agregarErrorSQL("bd", "Error Semantico", "No se ha indicado ninguna bd", 0, 0);
-            return;
-        }
-        File fichero = new File(ruta + BaseDeDatos.DBActual + "/proc.xml");
-        if (fichero.exists()) {
-            String cad = "";
-            try {
-                FileReader fr = new FileReader(fichero);
-                try (BufferedReader b = new BufferedReader(fr)) {
-                    String linea;
-                    while ((linea = b.readLine()) != null) {
-                        cad += linea + "\n";
-                        //System.out.println(cadena);
-                    }
-                    if (!"".equals(cad)) {
-                        Nodo nodo = parserXML.compilar(cad);
-                        RecorridoXML r = new RecorridoXML();
-                        r.Recorrido(nodo);
-                    }
-                }
-
-            } catch (FileNotFoundException ex) {
-                System.out.println("ERROR al cargar : " + ex);
-            } catch (IOException | AnalizadorXML.ParseException ex) {
-                System.out.println("ERROR al cargar: " + ex);
-            }
-
-        } else {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(fichero));
-            bw.close();
-        }
-    }
-
-    public static void agregarProcedure(String nombre, Nodo instruccion, ArrayList parametros, String tipo) {
-        if("".equals(BaseDeDatos.DBActual)){
             Errores.agregarErrorSQL("BD", "Error Semantico", "No se ha indicado una base de datos", 0, 0);
             return;
         }
         for (int i = 0; i < listaProcedure.size(); i++) {
-            proc p = listaProcedure.get(i);
-            if (nombre.equals(p.nombre)) {
+            Proced p = listaProcedure.get(i);
+            if (nombre.toLowerCase().equals(p.nombre)) {
                 Errores.agregarErrorSQL(nombre, "Error Semantico", "Ya existe el nombre " + nombre, i, i);
                 return;
             }
         }
-        RegistroProcedure p = new RegistroProcedure();
-        String instruc = p.generarInstruccion(instruccion);
-       // System.out.println(instruc);
-
-        listaProcedure.add(new proc(nombre, tipo, parametros, instruc));
+        String instruc ="";
+        if (instruccion instanceof Nodo) {
+            RegistroProcedure p = new RegistroProcedure();
+            instruc = p.generarInstruccion((Nodo) instruccion);
+            // System.out.println(instruc);
+        }else{
+            instruc = instruccion.toString();
+        }
+        listaProcedure.add(new Proced(nombre.toLowerCase(), tipo, parametros, instruc));
     }
 
     public void generarArchivo() {
-        File fichero = new File(ruta + BaseDeDatos.DBActual + "/proc.xml");
+        File fichero = new File(ruta + BaseDeDatos.DBActual + "/PROC.xml");
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(fichero));
 
             for (int i = 0; i < listaProcedure.size(); i++) {
-                proc p = listaProcedure.get(i);
+                Proced p = listaProcedure.get(i);
 
                 bw.write("<PROC>\n");
                 bw.write("  <nombre>" + p.nombre + "</nombre>\n");
@@ -101,7 +71,7 @@ public class RegistroProcedure {
             }
             bw.close();
         } catch (IOException ex) {
-            System.out.println("ERROR al generar el archivo maestro");
+            System.out.println("ERROR al generar el archivo proc");
         }
 
     }
@@ -109,13 +79,14 @@ public class RegistroProcedure {
     public static void imprimir() {
         System.out.println("\n* * * * * * * * * * PROCEDURE * * * * * * * * * *");
         for (int i = 0; i < RegistroProcedure.listaProcedure.size(); i++) {
-            proc db = RegistroProcedure.listaProcedure.get(i);
+            Proced db = RegistroProcedure.listaProcedure.get(i);
             System.out.println("> " + db.nombre + " - " + db.tipo + " - " + db.intrucciones + " - " + db.listaParametros.size());
         }
     }
 
     public String generarInstruccion(Nodo nodo) {
-
+        String nombre = nodo.texto;
+        //  System.out.println(nombre);
         if (nodo.cantidadHijos > 0) {
             for (int i = 0; i < nodo.cantidadHijos; i++) {
                 generarInstruccion(nodo.hijos[i]);
@@ -127,19 +98,33 @@ public class RegistroProcedure {
         return cadena;
     }
 
-}
+    public Object ejecutarProcedure(String nombre, ArrayList params) throws CloneNotSupportedException {
+        for (int i = 0; i < listaProcedure.size(); i++) {
+            Proced p = listaProcedure.get(i);
+            if (p.nombre.equals(nombre.toLowerCase()) && params.size() == p.listaParametros.size()) {
+                Variables.pilaAmbito.push(nombre);
+                for (int j = 0; j < params.size(); j++) {
+                    Variables.crearVariable(p.listaParametros.get(j).tipo, p.listaParametros.get(j).nombre, params.get(j));
+                }
+                try {
+                    Nodo nodo = parserSQL.compilar(p.intrucciones);
+                    RecorridoSQL r = new RecorridoSQL();
+                    if (nodo != null) {
+                        Object result = r.Recorrido(nodo);
+                        Variables.pilaAmbito.pop();
+                        RecorridoSQL.retornar = false;
+                        return result;
+                    }
 
-class proc {
-
-    String nombre;
-    String tipo;
-    ArrayList<Parametro> listaParametros;
-    String intrucciones;
-
-    proc(String n, String t, ArrayList p, String i) {
-        this.nombre = n;
-        this.listaParametros = p;
-        this.intrucciones = i;
-        this.tipo = t;
+                } catch (ParseException ex) {
+                    System.out.println("ERROR al ejecutar instruccion: " + ex);
+                }
+                Variables.pilaAmbito.pop();
+                return null;
+            }
+        }
+        Errores.agregarErrorSQL(nombre, "Error Semantico", "No existe el metodo indicado", 0, 0);
+        return null;
     }
+
 }

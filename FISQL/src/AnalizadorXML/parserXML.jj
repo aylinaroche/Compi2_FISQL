@@ -11,22 +11,24 @@ import java.nio.charset.StandardCharsets;
 
 public class parserXML
 {
-//se comenta esto
-        public static Nodo compilar(String cadena) throws ParseException {
-            Nodo nodo = null;
-            try {
-                InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
 
-                parserXML analizador = new parserXML(stream);
-                nodo =analizador.INICIO();
-                System.out.println("Se ha compilado con exito");
+    static parserXML parser = null;
 
-            } catch (ParseException e) {
-                System.out.println(e.getMessage());
-                System.out.println("Se han encontrado errores");
+    public static Nodo compilar(String cadena) throws ParseException {
+        Nodo nodo = null;
+        try {
+            InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
+            if (parser == null) {
+                parser = new parserXML(stream);
+            } else {
+                ReInit(stream);
             }
-            return nodo;
+            nodo = parser.INICIO();
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
         }
+        return nodo;
+    }
 }
 
 PARSER_END(parserXML)
@@ -44,6 +46,7 @@ TOKEN:
 	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
 	|	<cadena: "\"" (~["\""])* "\"">
 	|	<cad: "\"" (~["\""])* "\"">
+	|	<idVar: ["@"]["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
 	
 }
 SKIP:
@@ -140,6 +143,7 @@ Nodo CONTENIDO():
 try{
 		i =	<cadena>{nuevo.insertar(new Nodo(i.image,"cadena")); return nuevo;}
 	|   i = <id>{nuevo.insertar(new Nodo(i.image,"id")); return nuevo;}
+	|   i = <idVar>{nuevo.insertar(new Nodo(i.image,"idVar")); return nuevo;}
 }catch(ParseException e){
 	Token t;
     t = getNextToken();
@@ -150,5 +154,3 @@ try{
 	{return nuevo;}
 }
 }
-
-

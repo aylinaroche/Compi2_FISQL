@@ -2,5 +2,57 @@
   "/home/aylin/NetBeansProjects/FISQL/BD/Proyecto1/proc.xml"
 </procedure>
 <object>
-  "/home/aylin/NetBeansProjects/FISQL/BD/Proyecto1object.xml"
+  "/home/aylin/NetBeansProjects/FISQL/BD/Proyecto1/obj.xml"
 </object>
+<tabla>
+  <nombre>curso</nombre>
+  <path>"/home/aylin/NetBeansProjects/FISQL/BD/Proyecto1/Curso.xml"</path>
+  <campo>
+      <integer>id</integer>
+      <complemento>autoincrementable</complemento>
+      <complemento>llave_primaria</complemento>
+  </campo>
+
+  <campo>
+      <text>Nombre</text>
+      <complemento>no nulo</complemento>
+  </campo>
+
+</tabla>
+
+<tabla>
+  <nombre>estudiante</nombre>
+  <path>"/home/aylin/NetBeansProjects/FISQL/BD/Proyecto1/Estudiante.xml"</path>
+  <campo>
+      <integer>id</integer>
+      <complemento>autoincrementable</complemento>
+      <complemento>llave_primaria</complemento>
+  </campo>
+
+  <campo>
+      <text>Nombre</text>
+      <complemento>no nulo</complemento>
+  </campo>
+
+  <campo>
+      <date>fh_nac</date>
+      <complemento>no nulo</complemento>
+  </campo>
+
+  <campo>
+      <bool>trabaja</bool>
+  </campo>
+
+  <campo>
+      <integer>curso</integer>
+      <complemento>nulo</complemento>
+      <complemento>
+          <foranea>
+              <nombre>curso</nombre>
+              <atributo>id</atributo>
+          </foranea>
+      </complemento>
+  </campo>
+
+</tabla>
+

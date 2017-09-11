@@ -19,7 +19,7 @@ public class Errores {
         e.fila = f;
         e.columna = c;
         erroresSQL.add(e);
-        System.out.println("-> " + t + ": " + l + "," + d + "," + c);
+        System.out.println("-> " + t + " : " + l + " , " + d + " , " + c);
     }
 
     public static void imprimirError() {

@@ -7,22 +7,24 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class parserXML implements parserXMLConstants {
-//se comenta esto
-        public static Nodo compilar(String cadena) throws ParseException {
-            Nodo nodo = null;
-            try {
-                InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
 
-                parserXML analizador = new parserXML(stream);
-                nodo =analizador.INICIO();
-                System.out.println("Se ha compilado con exito");
+    static parserXML parser = null;
 
-            } catch (ParseException e) {
-                System.out.println(e.getMessage());
-                System.out.println("Se han encontrado errores");
+    public static Nodo compilar(String cadena) throws ParseException {
+        Nodo nodo = null;
+        try {
+            InputStream stream = new ByteArrayInputStream(cadena.getBytes(StandardCharsets.UTF_8));
+            if (parser == null) {
+                parser = new parserXML(stream);
+            } else {
+                ReInit(stream);
             }
-            return nodo;
+            nodo = parser.INICIO();
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
         }
+        return nodo;
+    }
 
   static final public Nodo INICIO() throws ParseException {
  Nodo nuevo = new Nodo("INICIO"); Nodo s;
@@ -118,6 +120,7 @@ public class parserXML implements parserXMLConstants {
         break;
       case id:
       case cadena:
+      case idVar:
         s = CONTENIDO();
                                 nuevo.insertar(s); {if (true) return nuevo;}
         break;
@@ -149,6 +152,10 @@ public class parserXML implements parserXMLConstants {
       case id:
         i = jj_consume_token(id);
                      nuevo.insertar(new Nodo(i.image,"id")); {if (true) return nuevo;}
+        break;
+      case idVar:
+        i = jj_consume_token(idVar);
+                        nuevo.insertar(new Nodo(i.image,"idVar")); {if (true) return nuevo;}
         break;
       default:
         jj_la1[2] = jj_gen;
@@ -183,7 +190,7 @@ public class parserXML implements parserXMLConstants {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x2,0xc2,0xc0,};
+      jj_la1_0 = new int[] {0x2,0x2c2,0x2c0,};
    }
 
   /** Constructor with InputStream. */
@@ -321,7 +328,7 @@ public class parserXML implements parserXMLConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[16];
+    boolean[] la1tokens = new boolean[17];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -335,7 +342,7 @@ public class parserXML implements parserXMLConstants {
         }
       }
     }
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 17; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

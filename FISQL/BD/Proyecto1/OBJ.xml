@@ -1,0 +1,8 @@
+<OBJ>
+  <nombre>empresa</nombre>
+  <atr>
+      <text>telefono</text>
+      <text>nombre</text>
+      <integer>codigo</integer>
+  </atr>
+</OBJ>

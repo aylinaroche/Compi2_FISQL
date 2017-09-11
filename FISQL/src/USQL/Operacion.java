@@ -4,28 +4,32 @@ package USQL;
  *
  * @author aylin
  */
+import BaseDeDatos.RegistroProcedure;
+import fisql.Errores;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 
 public class Operacion {
-    
-    public static Object resolverOperacion(Nodo nodo) {
+
+    public static Object resolverOperacion(Nodo nodo) throws CloneNotSupportedException {
         Object resultado = expresion(nodo);
-        //   System.out.println(">>>>> " + resultado);
+   //     System.out.println(">>>>> " + resultado);
         return resultado;
     }
-    
-    private static Object expresion(Nodo nodo) {
-        
+
+    private static Object expresion(Nodo nodo) throws CloneNotSupportedException {
+
         switch (nodo.cantidadHijos) {
             case 1:
                 String dato = nodo.hijos[0].texto;
-                
+
                 switch (dato) {
-                    case "ARREGLO":
-                    case "INSTANCIA":
-                    case "AccesoASL":
                     case "E":
+                    case "CONTAR":
                         RecorridoSQL r = new RecorridoSQL();
                         Object result = r.Recorrido(nodo.hijos[0]);
                         return result;
@@ -33,10 +37,7 @@ public class Operacion {
                         String tipoDato = nodo.hijos[0].tipo;
                         switch (tipoDato) {
                             case "cadena":
-                                return dato;
-                            case "caracter":
-                                char caracter = (char) dato.charAt(0);
-                                return caracter;
+                                return dato.replace("\"", "");
                             case "entero":
                                 int ent = Integer.parseInt(dato);
                                 return ent;
@@ -44,30 +45,48 @@ public class Operacion {
                                 Double num = Double.parseDouble(dato);
                                 return num;
                             case "id":
-//                                Object s = Variables.obtenerVariable(dato, Variables.nombreALS.peek());
-//                                if (s != null) {
-//                                    return s;
-//                                } else { //Buscar en lista
-//                                    //paradigmas.ReporteError.agregarErrorHK(dato, "Error Semantico", "No se encontro el id", 0, 0);
-//                                    return "";
-//                                }
-                            case "bool":
-                                if (dato.equals("verdadero")) {
-                                    return true;
+                            case "var":
+                                Object s = Variables.ObtenerValor(dato);
+                                if (s != null) {
+                                    return s;
+                                } else { //Buscar en lista
+                                    Errores.agregarErrorSQL(dato, "Error Semantico", "No se encontro el id", 0, 0);
+                                    return "";
                                 }
+                            case "verdadero":
+                                return true;
+                            case "falso":
                                 return false;
-                            
+                            case "fecha":
+                                SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy");
+                                Date fecha = null;
+                                try {
+                                    fecha = formato.parse(dato);
+                                } catch (ParseException ex) {
+                                    Errores.agregarErrorSQL(dato, "Error Semantico", "Formato de fecha incorrecto", 0, 0);
+                                }
+                                return fecha;
+                            case "nulo":
+                                return "nulo";
                             default:
-                                return "";
+                                break;
                         }
+                        break;
                 }
+                break;
             case 2:
                 Object F1 = "";
-                if (nodo.hijos[1].texto.equals("ARREGLO")) {
+                if (nodo.hijos[1].texto.equals("LLAMADA")) {
                     RecorridoSQL r = new RecorridoSQL();
-                    ArrayList coordenada = (ArrayList) r.Recorrido(nodo.hijos[1]);
-                    //Object result = Variables.obtenerValorArreglo(nodo.hijos[0].texto, coordenada);
-                  //  return result;
+                    Object result = r.Recorrido(nodo.hijos[1]);
+                    if (nodo.hijos[1].hijos[0].texto.equals("(")) {
+                        RegistroProcedure p = new RegistroProcedure();
+                        result = p.ejecutarProcedure(nodo.hijos[0].texto, (ArrayList) result);
+
+                    } else {
+                        result = Variables.obtenerValorAtributo(nodo.hijos[0].texto, result.toString());
+                    }
+                    return result;
                 } else if (nodo.hijos[0].texto.equals("-")) {
                     F1 = expresion(nodo.hijos[1]);
                     try {
@@ -77,12 +96,9 @@ public class Operacion {
                         } else if (F1 instanceof Integer) {
                             int n = (Integer) F1 * (-1);
                             return n;
-                        } else if (F1 instanceof Character) {
-                            int v1 = ((String) F1).codePointAt(0);
-                            int n = v1 * (-1);
-                            return n;
                         } else {
-                            //paradigmas.ReporteError.agregarErrorGK((String) F1, "Error Semantico", "No se puede negar el valor", 0, 0);
+                            Errores.agregarErrorSQL((String) F1, "Error Semantico", "No se puede negar el valor", 0, 0);
+                            // return false;
                         }
                     } catch (Exception e) {
                         System.out.println("E-(): " + e);
@@ -92,65 +108,26 @@ public class Operacion {
                     if (F1 instanceof Boolean) {
                         return !((Boolean) F1);
                     }
-                    //paradigmas.ReporteError.agregarErrorGK("!", "Error Semantico", "Error al operar !", 0, 0);
+                    Errores.agregarErrorSQL("!", "Error Semantico", "Error al operar !", 0, 0);
                     return false;
-                } else if (nodo.hijos[1].texto.equals("++")) {
-                    F1 = expresion(nodo.hijos[0]);
+                } else if ("fecha".equals(nodo.hijos[0].tipo)) {
+                    SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy");
+                    Date fecha = null;
                     try {
-                        if (F1 instanceof Double) {
-                            Double n = (Double) F1 + 1;
-                    //        Variables.asignarValor(nodo.hijos[0].hijos[0].texto, n);
-                            return n;
-                        } else if (F1 instanceof Integer) {
-                            int n = (Integer) F1 + 1;
-                      //      Variables.asignarValor(nodo.hijos[0].hijos[0].texto, n);
-                            return n;
-                        } else if (F1 instanceof Character) {
-                            int v1 = ((String) F1).codePointAt(0);
-                            int n = v1 + 1;
-                      //      Variables.asignarValor(nodo.hijos[0].hijos[0].texto, n);
-                            return n;
-                        } else {
-                            //paradigmas.ReporteError.agregarErrorGK("++", "Error Semantico", "Operadores ++ incorrectos", 0, 0);
-                            return (Double) 0.0;
-                        }
-                    } catch (Exception e) {
-                        System.out.println("E++ :" + e);
-                        return (Double) 0.0;
+                        fecha = formato.parse(nodo.hijos[0].texto);
+                    } catch (ParseException ex) {
+                        Errores.agregarErrorSQL(nodo.hijos[0].texto, "Error Semantico", "Formato de fecha incorrecto", 0, 0);
                     }
-                } else if (nodo.hijos[1].texto.equals("--")) {
-                    F1 = expresion(nodo.hijos[0]);
-                    try {
-                        if (F1 instanceof Double) {
-                            Double n = (Double) F1 - 1;
-                      //      Variables.asignarValor(nodo.hijos[0].hijos[0].texto, n);
-                            return n;
-                        } else if (F1 instanceof Integer) {
-                            int n = (Integer) F1 - 1;
-                      //      Variables.asignarValor(nodo.hijos[0].hijos[0].texto, n);
-                            return n;
-                        } else if (F1 instanceof Character) {
-                            int v1 = ((String) F1).codePointAt(0);
-                            int n = v1 - 1;
-                      //      Variables.asignarValor(nodo.hijos[0].hijos[0].texto, n);
-                            return n;
-                        } else {
-                            //paradigmas.ReporteError.agregarErrorGK("--", "Error Semantico", "Operadores ++ incorrectos", 0, 0);
-                            return (Double) 0.0;
-                        }
-                    } catch (Exception e) {
-                        System.out.println("E-- :" + e);
-                        return (Double) 0.0;
-                    }
+                    return fecha;
                 } else {
                     return "";
                 }
-            
+
             case 3: //Nodo binario
                 Object E1 = "";
                 Object E2 = "";
                 switch (nodo.hijos[1].texto) {
-                    
+
                     case "+": //E+E
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
@@ -170,16 +147,6 @@ public class Operacion {
                                         int v = (int) E2;
                                         Double v1 = Double.parseDouble(String.valueOf(v)) + (Double) E1;
                                         return v1;
-                                    }
-                                } else if ((E1 instanceof Character) || (E2 instanceof Character)) {//Char
-                                    if (E1 instanceof Character) {
-                                        int v1 = ((String) E1).codePointAt(0);
-                                        Double v2 = Double.parseDouble(String.valueOf(v1)) + (Double) E2;
-                                        return v2;
-                                    } else {
-                                        int v1 = ((String) E2).codePointAt(0);
-                                        Double v2 = Double.parseDouble(String.valueOf(v1)) + (Double) E1;
-                                        return v2;
                                     }
                                 } else if ((E1 instanceof Boolean) || (E2 instanceof Boolean)) {//Boolean
                                     if (E1 instanceof Boolean) {
@@ -230,23 +197,18 @@ public class Operacion {
                                 //BOOL
                             } else if ((E1 instanceof Boolean) && (E2 instanceof Boolean)) {
                                 return (Boolean) E1 == true || (Boolean) E2 == true;
-                                //CARACTER
-                            } else if (E1 instanceof Character || E2 instanceof Character) {
-                                String r = String.valueOf(E1) + String.valueOf(E2);
-                                return r;
+
                             }
-                            //paradigmas.ReporteError.agregarErrorGK("+", "Error Semantico", "Error al castear suma ", 0, 0);
+                            Errores.agregarErrorSQL("+", "Error Semantico", "Error al castear suma ", 0, 0);
                             return (Double) 0.0;
-                        } catch (Exception e) {
+                        } catch (NumberFormatException e) {
                             System.out.println("E+ :" + e);
                             return "";
                         }
-                    //  break;
-
                     case "-": //E-E
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
-                        
+
                         try {
                             if ((E1 instanceof Double) || (E2 instanceof Double)) {
                                 if ((E1 instanceof Integer) || (E2 instanceof Integer)) { //Entero
@@ -258,16 +220,6 @@ public class Operacion {
                                         int v = (int) E2;
                                         Double v1 = (Double) E1 - Double.parseDouble(String.valueOf(v));
                                         return v1;
-                                    }
-                                } else if ((E1 instanceof Character) || (E2 instanceof Character)) {//Char
-                                    if (E1 instanceof Character) {
-                                        int v1 = ((String) E1).codePointAt(0);
-                                        Double v2 = Double.parseDouble(String.valueOf(v1)) - (Double) E2;
-                                        return v2;
-                                    } else {
-                                        int v1 = ((String) E2).codePointAt(0);
-                                        Double v2 = (Double) E1 - Double.parseDouble(String.valueOf(v1));
-                                        return v2;
                                     }
                                 } else if ((E1 instanceof Boolean) || (E2 instanceof Boolean)) {//Boolean
                                     if (E1 instanceof Boolean) {
@@ -316,18 +268,16 @@ public class Operacion {
                                     return (Integer) E1 - (Integer) E2;
                                 }
                             }
-                            //paradigmas.ReporteError.agregarErrorGK("-", "Error Semantico", "Error al castear resta ", 0, 0);
+                            Errores.agregarErrorSQL("-", "Error Semantico", "Error al castear resta ", 0, 0);
                             return (Double) 0.0;
-                        } catch (Exception e) {
+                        } catch (NumberFormatException e) {
                             System.out.println("E- :" + e);
                             return "";
                         }
-
-                    //  break;
                     case "*": //E*E
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
-                        
+
                         try {
                             if ((E1 instanceof Double) || (E2 instanceof Double)) {
                                 if ((E1 instanceof Integer) || (E2 instanceof Integer)) { //Entero
@@ -339,16 +289,6 @@ public class Operacion {
                                         int v = (int) E2;
                                         Double v1 = (Double) E1 * Double.parseDouble(String.valueOf(v));
                                         return v1;
-                                    }
-                                } else if ((E1 instanceof Character) || (E2 instanceof Character)) {//Char
-                                    if (E1 instanceof Character) {
-                                        int v1 = ((String) E1).codePointAt(0);
-                                        Double v2 = Double.parseDouble(String.valueOf(v1)) * (Double) E2;
-                                        return v2;
-                                    } else {
-                                        int v1 = ((String) E2).codePointAt(0);
-                                        Double v2 = (Double) E1 * Double.parseDouble(String.valueOf(v1));
-                                        return v2;
                                     }
                                 } else if ((E1 instanceof Boolean) || (E2 instanceof Boolean)) {//Boolean
                                     if (E1 instanceof Boolean) {
@@ -367,7 +307,6 @@ public class Operacion {
                                 } else if ((E1 instanceof Double) && (E2 instanceof Double)) {//Double
                                     return (Double) E1 * (Double) E2;
                                 }
-                                //ENTERO
                             } else if ((E1 instanceof Integer) || (E2 instanceof Integer)) {
                                 if ((E1 instanceof Character) || (E2 instanceof Character)) {//Char
                                     if (E1 instanceof Character) {
@@ -400,10 +339,10 @@ public class Operacion {
                             } else if ((E1 instanceof Boolean) && (E2 instanceof Boolean)) {
                                 return (Boolean) E1 == true && (Boolean) E2 == true;
                             }
-                            //paradigmas.ReporteError.agregarErrorGK("*", "Error Semantico", "Error al castear multiplicación ", 0, 0);
+                            Errores.agregarErrorSQL("*", "Error Semantico", "Error al castear multiplicación ", 0, 0);
                             return (Double) 0.0;
-                            
-                        } catch (Exception e) {
+
+                        } catch (NumberFormatException e) {
                             System.out.println("E");
                             return "";
                         }
@@ -423,16 +362,6 @@ public class Operacion {
                                         Double v1 = (Double) E1 / Double.parseDouble(String.valueOf(v));
                                         return v1;
                                     }
-                                } else if ((E1 instanceof Character) || (E2 instanceof Character)) {//Char
-                                    if (E1 instanceof Character) {
-                                        int v1 = ((String) E1).codePointAt(0);
-                                        Double v2 = Double.parseDouble(String.valueOf(v1)) / (Double) E2;
-                                        return v2;
-                                    } else {
-                                        int v1 = ((String) E2).codePointAt(0);
-                                        Double v2 = (Double) E1 / Double.parseDouble(String.valueOf(v1));
-                                        return v2;
-                                    }
                                 } else if ((E1 instanceof Boolean) || (E2 instanceof Boolean)) {//Boolean
                                     if (E1 instanceof Boolean) {
                                         if ((Boolean) E1 == true) {
@@ -445,7 +374,7 @@ public class Operacion {
                                         Double v1 = (Double) E1 / 1;
                                         return v1;
                                     } else {
-                                        //paradigmas.ReporteError.agregarErrorGK("falso", "Error Semantico", "No se puede dividir dentro de 0", 0, 0);
+                                        Errores.agregarErrorSQL("falso", "Error Semantico", "No se puede dividir dentro de 0", 0, 0);
                                         return (Double) 0.0;
                                     }
                                 } else if ((E1 instanceof Double) && (E2 instanceof Double)) {//Double
@@ -477,7 +406,7 @@ public class Operacion {
                                         int v1 = (Integer) E1 / 1;
                                         return v1;
                                     } else {
-                                        //paradigmas.ReporteError.agregarErrorGK("falso", "Error Semantico", "No se puede dividir dentro de 0", 0, 0);
+                                        Errores.agregarErrorSQL("falso", "Error Semantico", "No se puede dividir dentro de 0", 0, 0);
                                         return (Double) 0.0;
                                     }
                                 } else if ((E1 instanceof Integer) && (E2 instanceof Integer)) {//Enteross
@@ -488,19 +417,17 @@ public class Operacion {
                                 }
                                 //BOOL
                             }
-                            //paradigmas.ReporteError.agregarErrorGK("/", "Error Semantico", "Error al castear dividar ", 0, 0);
+                            Errores.agregarErrorSQL("/", "Error Semantico", "Error al castear dividar ", 0, 0);
                             return (Double) 0.0;
-                            
-                        } catch (Exception e) {
+
+                        } catch (NumberFormatException e) {
                             System.out.println("E");
                             return "";
                         }
-                    //break;
-
                     case "^": //E*E
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
-                        
+
                         try {
                             if ((E1 instanceof Double) || (E2 instanceof Double)) {
                                 if ((E1 instanceof Integer) || (E2 instanceof Integer)) { //Entero
@@ -512,16 +439,6 @@ public class Operacion {
                                         int v = (int) E2;
                                         Double v1 = Math.pow((Double) E1, Double.parseDouble(String.valueOf(v)));
                                         return v1;
-                                    }
-                                } else if ((E1 instanceof Character) || (E2 instanceof Character)) {//Char
-                                    if (E1 instanceof Character) {
-                                        int v1 = ((String) E1).codePointAt(0);
-                                        Double v2 = Math.pow(Double.parseDouble(String.valueOf(v1)), (Double) E2);
-                                        return v2;
-                                    } else {
-                                        int v1 = ((String) E2).codePointAt(0);
-                                        Double v2 = Math.pow((Double) E1, Double.parseDouble(String.valueOf(v1)));
-                                        return v2;
                                     }
                                 } else if ((E1 instanceof Boolean) || (E2 instanceof Boolean)) {//Boolean
                                     if (E1 instanceof Boolean) {
@@ -575,10 +492,10 @@ public class Operacion {
                                     return v1.intValue();
                                 }
                             }
-                            //paradigmas.ReporteError.agregarErrorGK("^", "Error Semantico", "Error al castear potencia ", 0, 0);
+                            Errores.agregarErrorSQL("^", "Error Semantico", "Error al castear potencia ", 0, 0);
                             return (Double) 0.0;
-                            
-                        } catch (Exception e) {
+
+                        } catch (NumberFormatException e) {
                             System.out.println("E");
                             return "";
                         }
@@ -587,7 +504,7 @@ public class Operacion {
                         try {
                             E1 = expresion(nodo.hijos[0]);
                             E2 = expresion(nodo.hijos[2]);
-                            
+
                             if ((E1 instanceof Double || E2 instanceof Double) && (E1 instanceof Integer || E2 instanceof Integer)) {
                                 if (E1 instanceof Double) {
                                     Double var1 = (Double) (E1);
@@ -658,14 +575,13 @@ public class Operacion {
                                 return (Double) E1 > (Double) E2;
                             } else if ((E1 instanceof Integer && E2 instanceof Integer)) {
                                 return (Integer) E1 > (Integer) E2;
-                            } else if ((E1 instanceof Character && E2 instanceof Character)) {
-                                return ((String) E1).codePointAt(0) > ((String) E2).codePointAt(0);
                             } else if ((E1 instanceof Boolean && E2 instanceof Boolean)) {
                                 return obtenerBoolean(E1) > obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return compararMayor((String) E1, (String) E2);
                             } else {
-                                //paradigmas.ReporteError.agregarErrorGK(">", "Error Semantico", "Error al usar operador relacional >", 0, 0);
+                                Errores.agregarErrorSQL(">", "Error Semantico", "Error al usar operador relacional >", 0, 0);
+                                return false;
                             }
                         } catch (Exception e) {
                             System.out.println("E>: " + e);
@@ -676,7 +592,7 @@ public class Operacion {
                         try {
                             E1 = expresion(nodo.hijos[0]);
                             E2 = expresion(nodo.hijos[2]);
-                            
+
                             if ((E1 instanceof Double || E2 instanceof Double) && (E1 instanceof Integer || E2 instanceof Integer)) {
                                 if (E1 instanceof Double) {
                                     Double var1 = (Double) (E1);
@@ -747,15 +663,14 @@ public class Operacion {
                                 return (Double) E1 < (Double) E2;
                             } else if ((E1 instanceof Integer && E2 instanceof Integer)) {
                                 return (Integer) E1 < (Integer) E2;
-                            } else if ((E1 instanceof Character && E2 instanceof Character)) {
-                                return ((String) E1).codePointAt(0) < ((String) E2).codePointAt(0);
                             } else if ((E1 instanceof Boolean && E2 instanceof Boolean)) {
                                 return obtenerBoolean(E1) < obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return compararMenor((String) E1, (String) E2);
-                                
+
                             } else {
-                                //paradigmas.ReporteError.agregarErrorGK("<", "Error Semantico", "Error al usar operador relacional <", 0, 0);
+                                Errores.agregarErrorSQL("<", "Error Semantico", "Error al usar operador relacional <", 0, 0);
+                                return false;
                             }
                         } catch (Exception e) {
                             System.out.println("E<: " + e);
@@ -765,7 +680,7 @@ public class Operacion {
                         try {
                             E1 = expresion(nodo.hijos[0]);
                             E2 = expresion(nodo.hijos[2]);
-                            
+
                             if ((E1 instanceof Double || E2 instanceof Double) && (E1 instanceof Integer || E2 instanceof Integer)) {
                                 if (E1 instanceof Double) {
                                     Double var1 = (Double) (E1);
@@ -844,8 +759,6 @@ public class Operacion {
                                 return (Double) E1 >= (Double) E2;
                             } else if ((E1 instanceof Integer && E2 instanceof Integer)) {
                                 return (Integer) E1 >= (Integer) E2;
-                            } else if ((E1 instanceof Character && E2 instanceof Character)) {
-                                return ((String) E1).codePointAt(0) >= ((String) E2).codePointAt(0);
                             } else if ((E1 instanceof Boolean && E2 instanceof Boolean)) {
                                 return obtenerBoolean(E1) >= obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
@@ -855,7 +768,8 @@ public class Operacion {
                                 }
                                 return comp;
                             } else {
-                                //paradigmas.ReporteError.agregarErrorGK(">=", "Error Semantico", "Error al usar operador relacional >=", 0, 0);
+                                Errores.agregarErrorSQL(">=", "Error Semantico", "Error al usar operador relacional >=", 0, 0);
+                                return false;
                             }
                         } catch (Exception e) {
                             System.out.println("E>=: " + e);
@@ -866,7 +780,7 @@ public class Operacion {
                         try {
                             E1 = expresion(nodo.hijos[0]);
                             E2 = expresion(nodo.hijos[2]);
-                            
+
                             if ((E1 instanceof Double || E2 instanceof Double) && (E1 instanceof Integer || E2 instanceof Integer)) {
                                 if (E1 instanceof Double) {
                                     Double var1 = (Double) (E1);
@@ -945,8 +859,6 @@ public class Operacion {
                                 return (Double) E1 <= (Double) E2;
                             } else if ((E1 instanceof Integer && E2 instanceof Integer)) {
                                 return (Integer) E1 <= (Integer) E2;
-                            } else if ((E1 instanceof Character && E2 instanceof Character)) {
-                                return ((String) E1).codePointAt(0) <= ((String) E2).codePointAt(0);
                             } else if ((E1 instanceof Boolean && E2 instanceof Boolean)) {
                                 return obtenerBoolean(E1) <= obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
@@ -956,7 +868,8 @@ public class Operacion {
                                 }
                                 return comp;
                             } else {
-                                //paradigmas.ReporteError.agregarErrorGK("<=", "Error Semantico", "Error al usar operador relacional <=", 0, 0);
+                                Errores.agregarErrorSQL("<=", "Error Semantico", "Error al usar operador relacional <=", 0, 0);
+                                return false;
                             }
                         } catch (Exception e) {
                             System.out.println("E<=: " + e);
@@ -966,7 +879,7 @@ public class Operacion {
                         try {
                             E1 = expresion(nodo.hijos[0]);
                             E2 = expresion(nodo.hijos[2]);
-                            
+
                             if ((E1 instanceof Double || E2 instanceof Double) && (E1 instanceof Integer || E2 instanceof Integer)) {
                                 if (E1 instanceof Double) {
                                     Double var1 = (Double) (E1);
@@ -1037,14 +950,13 @@ public class Operacion {
                                 return Objects.equals((Double) E1, (Double) E2);
                             } else if ((E1 instanceof Integer && E2 instanceof Integer)) {
                                 return Objects.equals((Integer) E1, (Integer) E2);
-                            } else if ((E1 instanceof Character && E2 instanceof Character)) {
-                                return ((String) E1).codePointAt(0) == ((String) E2).codePointAt(0);
                             } else if ((E1 instanceof Boolean && E2 instanceof Boolean)) {
                                 return obtenerBoolean(E1) == obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return compararIgual((String) E1, (String) E2);
                             } else {
-                                //paradigmas.ReporteError.agregarErrorGK("==", "Error Semantico", "Error al usar operador relacional ==", 0, 0);
+                                Errores.agregarErrorSQL("==", "Error Semantico", "Error al usar operador relacional ==", 0, 0);
+                                return false;
                             }
                         } catch (Exception e) {
                             System.out.println("E==: " + e);
@@ -1055,7 +967,7 @@ public class Operacion {
                         try {
                             E1 = expresion(nodo.hijos[0]);
                             E2 = expresion(nodo.hijos[2]);
-                            
+
                             if ((E1 instanceof Double || E2 instanceof Double) && (E1 instanceof Integer || E2 instanceof Integer)) {
                                 if (E1 instanceof Double) {
                                     Double var1 = (Double) (E1);
@@ -1109,7 +1021,7 @@ public class Operacion {
                                     return var1 != var2;
                                 } else {
                                     int var1 = (Integer) (E1);
-                                    int var2 = obtenerBoolean(E2);;
+                                    int var2 = obtenerBoolean(E2);
                                     return var1 != var2;
                                 }
                             } else if ((E1 instanceof Boolean || E2 instanceof Boolean) && (E1 instanceof Character || E2 instanceof Character)) {
@@ -1126,14 +1038,13 @@ public class Operacion {
                                 return !Objects.equals((Double) E1, (Double) E2);
                             } else if ((E1 instanceof Integer && E2 instanceof Integer)) {
                                 return !Objects.equals((Integer) E1, (Integer) E2);
-                            } else if ((E1 instanceof Character && E2 instanceof Character)) {
-                                return ((String) E1).codePointAt(0) != ((String) E2).codePointAt(0);
                             } else if ((E1 instanceof Boolean && E2 instanceof Boolean)) {
                                 return obtenerBoolean(E1) != obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return !compararIgual((String) E1, (String) E2);
                             } else {
-                                //paradigmas.ReporteError.agregarErrorGK("!=", "Error Semantico", "Error al usar operador relacional !=", 0, 0);
+                                Errores.agregarErrorSQL("!=", "Error Semantico", "Error al usar operador relacional !=", 0, 0);
+                                return false;
                             }
                         } catch (Exception e) {
                             System.out.println("E!=: " + e);
@@ -1142,40 +1053,54 @@ public class Operacion {
                     case "&&":
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
-                        
+
                         if (E1 instanceof Boolean && E2 instanceof Boolean) {
                             return (Boolean) E1 == true && (Boolean) E2 == true;
                         }
-                        //paradigmas.ReporteError.agregarErrorGK("&&", "Error Semantico", "Error al operar &&", 0, 0);
+                        Errores.agregarErrorSQL("&&", "Error Semantico", "Error al operar &&", 0, 0);
+
                         return false;
-                    
+
                     case "||":
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
-                        
+
                         if (E1 instanceof Boolean && E2 instanceof Boolean) {
                             return (Boolean) E1 == true || (Boolean) E2 == true;
                         }
-                        //paradigmas.ReporteError.agregarErrorGK("||", "Error Semantico", "Error al operar ||", 0, 0);
+                        Errores.agregarErrorSQL("||", "Error Semantico", "Error al operar ||", 0, 0);
                         return false;
-                    
+
                     case "&|":
                         E1 = expresion(nodo.hijos[0]);
                         E2 = expresion(nodo.hijos[2]);
-                        
+
                         if (E1 instanceof Boolean && E2 instanceof Boolean) {
                             return !(Objects.equals((Boolean) E1, (Boolean) E2));
                         }
-                        //paradigmas.ReporteError.agregarErrorGK("&|", "Error Semantico", "Error al operar &|", 0, 0);
+                        Errores.agregarErrorSQL("&|", "Error Semantico", "Error al operar &|", 0, 0);
                         return false;
+                    case "(":
+                        String dato2 = nodo.hijos[0].texto;
+                        switch (dato2) {
+                            case "FECHA":
+                                Date ahora = new Date();
+                                Calendar c = Calendar.getInstance();
+                                return c.getTime();
+                            case "FECHA_HORA":
+                                Calendar c2 = Calendar.getInstance();
+                                return c2.getTime();
+                        }
+                        break;
                     default: //(E)
                         return expresion(nodo.hijos[1]);
+
                 }
         }
-        
+
         return "";
     }
-    
+
     public static Boolean compararMayor(String c1, String c2) {
         if (c1.length() > c2.length()) {
             return true;
@@ -1189,7 +1114,7 @@ public class Operacion {
         }
         return false;
     }
-    
+
     public static Boolean compararMenor(String c1, String c2) {
         if (c1.length() > c2.length()) {
             return false;
@@ -1203,7 +1128,7 @@ public class Operacion {
         }
         return false;
     }
-    
+
     public static Boolean compararIgual(String c1, String c2) {
         if (c1.length() > c2.length()) {
             return false;
@@ -1219,7 +1144,7 @@ public class Operacion {
         }
         return true;
     }
-    
+
     public static int obtenerBoolean(Object E1) {
         Boolean b = (Boolean) E1;
         if (b == true) {
