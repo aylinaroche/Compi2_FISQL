@@ -47,6 +47,10 @@ TOKEN:
 	|	<cadena: "\"" (~["\""])* "\"">
 	|	<cad: "\"" (~["\""])* "\"">
 	|	<idVar: ["@"]["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
+	|	<simbolo: "#"|"@"|"!"|":"|";"|"?"|"$"|"%"|"^"|"&"|"*"|"!"|"("|")"|"-"|"_"|"="|"<"|">"|"/"|"¿"|"¡"|"."|"["|"]">
+	|	<cadenaDos: ("\"")(<entero>|<id>|<simbolo>|" "|"\t"|"\n")*("\"")>
+	|	<fecha: (["0"-"9"]["0"-"9"]"-"["0"-"9"]["0"-"9"]"-"["0"-"9"]["0"-"9"]["0"-"9"]["0"-"9"])>
+	|	<hora: (["0"-"9"]["0"-"9"]":"["0"-"9"]["0"-"9"]":"["0"-"9"]["0"-"9"])>
 	
 }
 SKIP:
@@ -141,9 +145,14 @@ Nodo CONTENIDO():
 {Nodo nuevo = new Nodo("CONTENIDO"); Nodo s; Token i;}
 {
 try{
-		i =	<cadena>{nuevo.insertar(new Nodo(i.image,"cadena")); return nuevo;}
-	|   i = <id>{nuevo.insertar(new Nodo(i.image,"id")); return nuevo;}
+		i = <entero>{nuevo.insertar(new Nodo(i.image,"entero")); return nuevo;}
+	|   i = <decimal>{nuevo.insertar(new Nodo(i.image,"decimal")); return nuevo;}
+	|	i =	<cadena>{nuevo.insertar(new Nodo(i.image,"cadena")); return nuevo;}
+	|   i = <id>s =C(){nuevo.insertar(new Nodo(i.image,"id")); nuevo.insertar(s); return nuevo;}
 	|   i = <idVar>{nuevo.insertar(new Nodo(i.image,"idVar")); return nuevo;}
+	|   i = <cadenaDos>{nuevo.insertar(new Nodo(i.image,"idVar")); return nuevo;}
+	|   i = <hora>{nuevo.insertar(new Nodo(i.image,"idVar")); return nuevo;}
+	|   i = <fecha>{nuevo.insertar(new Nodo(i.image,"idVar")); return nuevo;}
 }catch(ParseException e){
 	Token t;
     t = getNextToken();
@@ -151,6 +160,22 @@ try{
 		return nuevo; 
 	}
 	CONTENIDO();
+	{return nuevo;}
+}
+}
+Nodo C():
+{Nodo nuevo = new Nodo("C"); Nodo s; Token i;}
+{
+try{
+	    i = <id>{nuevo.insertar(new Nodo(i.image,"id")); return nuevo;}
+	|	{return null;}
+}catch(ParseException e){
+	Token t;
+    t = getNextToken();
+	if(t.kind==etqC){
+		return nuevo; 
+	}
+	C();
 	{return nuevo;}
 }
 }

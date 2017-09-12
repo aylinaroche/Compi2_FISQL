@@ -26,7 +26,7 @@ public class RegistroDB {
         }
         for (int i = 0; i < listaTabla.size(); i++) {
             Encabezado p = listaTabla.get(i);
-            if (nombre.equals(p.nombre)) {
+            if (nombre.equalsIgnoreCase(p.nombre)) {
                 Errores.agregarErrorSQL(nombre, "Error Semantico", "Ya existe el nombre " + nombre, i, i);
                 return;
             }
@@ -62,9 +62,22 @@ public class RegistroDB {
             }
         }
 
+        listaTabla.add(new Encabezado(nombre.toLowerCase(), ruta + BaseDeDatos.DBActual + "/" + nombre.toLowerCase() + ".xml", atributos));
+
+        RegistroTabla.crearArchivo(nombre.toLowerCase());
+    }
+
+    public static void agregarTablaXML(String nombre, ArrayList atributos) {
+        for (int i = 0; i < listaTabla.size(); i++) {
+            Encabezado p = listaTabla.get(i);
+            if (nombre.equalsIgnoreCase(p.nombre)) {
+                Errores.agregarErrorSQL(nombre, "Error Semantico", "Ya existe el nombre " + nombre, i, i);
+                return;
+            }
+        }
         listaTabla.add(new Encabezado(nombre.toLowerCase(), ruta + BaseDeDatos.DBActual + "/" + nombre + ".xml", atributos));
 
-        RegistroTabla.crearArchivo(nombre);
+        RegistroTabla.crearArchivo(nombre.toLowerCase());
     }
 
     public static void alterarTabla(String tabla, String tipo, ArrayList campos) {

@@ -27,7 +27,7 @@ public class BaseDeDatos {
 
     public static String DBActual = "";
     public static ArrayList listaImprimir = new ArrayList();
-    public String[][][] fecha = new String[1][1][1];
+    //public String[][][] fecha = new String[1][1][1];
 
     public void limpiar() {
         RegistroMaestro.listaDB.clear();
@@ -72,8 +72,8 @@ public class BaseDeDatos {
     public static void cargarBD() throws IOException {
         String ruta = "/home/aylin/NetBeansProjects/FISQL/BD/";
         cargar(ruta + BaseDeDatos.DBActual + "/DB.xml");
-        cargar(ruta + BaseDeDatos.DBActual + "/OBJ.xml");
-        cargar(ruta + BaseDeDatos.DBActual + "/PROC.xml");
+      //  cargar(ruta + BaseDeDatos.DBActual + "/OBJ.xml");
+        //cargar(ruta + BaseDeDatos.DBActual + "/PROC.xml");
      
 
     }

@@ -1001,7 +1001,7 @@ public class parserSQL implements parserSQLConstants {
         i = jj_consume_token(id);
         d = DONDE();
         o = ORDENAR();
-                                                    nuevo.insertar(new Nodo("por de"));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o);
+                                                    nuevo.insertar(new Nodo("*")); nuevo.insertar(new Nodo("de"));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o);
         break;
       default:
         jj_la1[20] = jj_gen;

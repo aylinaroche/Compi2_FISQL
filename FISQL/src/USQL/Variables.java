@@ -115,6 +115,9 @@ public class Variables {
     }
 
     public static Boolean verificarTipo(String tipo, Object valor) {
+        if(valor.toString().equalsIgnoreCase("nulo")){
+            return true;
+        }
         String t = tipo.toLowerCase();
         if (valor instanceof Integer && t.equalsIgnoreCase("integer")) {
             return true;

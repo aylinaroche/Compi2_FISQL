@@ -66,7 +66,7 @@ public class RegistroMaestro {
         File folder = new File(path);
         folder.mkdir();
         RegistroDB r = new RegistroDB();
-        r.generarArchivo(nombre);
+       // r.generarArchivo(nombre);
     }
 
     public static void usarBD(String nombre) {

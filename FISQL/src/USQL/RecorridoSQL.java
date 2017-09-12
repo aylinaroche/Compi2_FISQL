@@ -324,7 +324,16 @@ public class RecorridoSQL {
                             }
                             break;
                         case "actualizar":
-                            //result = Recorrido(raiz.hijos[2]);
+                            ArrayList campos = (ArrayList) Recorrido(raiz.hijos[4]);
+                            ArrayList valores = (ArrayList) Recorrido(raiz.hijos[6]);
+                            switch (raiz.cantidadHijos) {
+                                case 9: 
+                                    RegistroTabla.actualizarTabla(raiz.hijos[2].texto, campos, valores, null);
+                                    break;
+                                case 10: 
+                                    RegistroTabla.actualizarTabla(raiz.hijos[2].texto, campos, valores, raiz.hijos[8]);
+                                    break;
+                            }
                             break;
                         case "borrar":
                             result = Recorrido(raiz.hijos[1]);
@@ -353,16 +362,17 @@ public class RecorridoSQL {
                             result = BaseDeDatos.voltearAgregar(raiz.hijos[0].texto, l3);
                             break;
                     }
+                    break;
                 case "LISTACAMPOSP":
                     switch (raiz.cantidadHijos) {
                         case 2:
                             ArrayList l1 = new ArrayList();
-                            l1.add(raiz.hijos[0].texto);
+                            l1.add(raiz.hijos[1].texto);
                             result = l1;
                             break;
                         case 3:
                             ArrayList l2 = (ArrayList) Recorrido(raiz.hijos[2]);
-                            l2.add(raiz.hijos[1].texto);
+                            l2.add(raiz.hijos[2].texto);
                             result = l2;
                             break;
                     }
@@ -398,38 +408,66 @@ public class RecorridoSQL {
                     break;
                 case "DONDE":
                     switch (raiz.cantidadHijos) {
-                        case 0:
-                            break;
                         case 2:
                             result = Recorrido(raiz.hijos[1]);
                             break;
                     }
                     break;
                 case "SELECCIONAR":
-                    switch (raiz.cantidadHijos) {
-                        case 4:
-                            break;
-                        case 5:
-                            result = Recorrido(raiz.hijos[1]);
-                            break;
+                    if (raiz.hijos[0].texto.equals("*")) {
+                        switch (raiz.cantidadHijos) {
+                            case 3:
+                                result = RegistroTabla.seleccionar("*", raiz.hijos[2].texto, null, vacia);
+                                break;
+                            case 4:
+                                if (raiz.hijos[3].texto.equals("DONDE")) {
+                                    result = RegistroTabla.seleccionar("*", raiz.hijos[2].texto, raiz.hijos[3], vacia);
+                                } else { //Ordenar
+                                    Object ordenar = Recorrido(raiz.hijos[3]);
+                                    result = RegistroTabla.seleccionar("*", raiz.hijos[2].texto, null, (ArrayList) ordenar);
+                                }
+                                break;
+                            case 5:
+                                Object ordenar = Recorrido(raiz.hijos[4]);
+                                result = RegistroTabla.seleccionar("*", raiz.hijos[2].texto, raiz.hijos[3], (ArrayList) ordenar);
+                                break;
+                        }
+                        break;
+                    } else {
+                        result = Recorrido(raiz.hijos[0]);
+                        switch (raiz.cantidadHijos) {
+                            case 3:
+                                result = RegistroTabla.seleccionar(result, raiz.hijos[2].texto, null, vacia);
+                                break;
+                            case 4:
+                                if (raiz.hijos[3].texto.equals("DONDE")) {
+                                    result = RegistroTabla.seleccionar(result, raiz.hijos[2].texto, raiz.hijos[3], vacia);
+                                } else { //Ordenar
+                                    Object ordenar = Recorrido(raiz.hijos[3]);
+                                    result = RegistroTabla.seleccionar(result, raiz.hijos[2].texto, null, (ArrayList) ordenar);
+                                }
+                                break;
+                            case 5:
+                                Object ordenar = Recorrido(raiz.hijos[4]);
+                                result = RegistroTabla.seleccionar(result, raiz.hijos[2].texto, raiz.hijos[3], (ArrayList) ordenar);
+                                break;
+                        }
+                        break;
                     }
-                    break;
                 case "ORDENAR":
                     switch (raiz.cantidadHijos) {
-                        case 0:
-                            break;
                         case 3:
-                            result = Recorrido(raiz.hijos[1]);
+                            ArrayList l = new ArrayList();
+                            l.add(raiz.hijos[1].texto);
+                            l.add(Recorrido(raiz.hijos[2]));
+                            result = l;
                             break;
                     }
                     break;
                 case "TIPOORDENAR":
-                    switch (raiz.hijos[0].texto.toLowerCase()) {
-                        case "asc":
-                            result = Recorrido(raiz.hijos[1]);
-                            break;
-                        case "desc":
-                            //result = Recorrido(raiz.hijos[2]);
+                    switch (raiz.cantidadHijos) {
+                        case 1:
+                            result = raiz.hijos[0].texto;
                             break;
                     }
                     break;

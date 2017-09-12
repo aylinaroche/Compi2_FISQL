@@ -118,9 +118,14 @@ public class parserXML implements parserXMLConstants {
         s = ETIQUETA();
                                    nuevo.insertar(s); {if (true) return nuevo;}
         break;
+      case entero:
+      case decimal:
       case id:
       case cadena:
       case idVar:
+      case cadenaDos:
+      case fecha:
+      case hora:
         s = CONTENIDO();
                                 nuevo.insertar(s); {if (true) return nuevo;}
         break;
@@ -145,16 +150,37 @@ public class parserXML implements parserXMLConstants {
  Nodo nuevo = new Nodo("CONTENIDO"); Nodo s; Token i;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case entero:
+        i = jj_consume_token(entero);
+                             nuevo.insertar(new Nodo(i.image,"entero")); {if (true) return nuevo;}
+        break;
+      case decimal:
+        i = jj_consume_token(decimal);
+                          nuevo.insertar(new Nodo(i.image,"decimal")); {if (true) return nuevo;}
+        break;
       case cadena:
         i = jj_consume_token(cadena);
                                  nuevo.insertar(new Nodo(i.image,"cadena")); {if (true) return nuevo;}
         break;
       case id:
         i = jj_consume_token(id);
-                     nuevo.insertar(new Nodo(i.image,"id")); {if (true) return nuevo;}
+        s = C();
+                           nuevo.insertar(new Nodo(i.image,"id")); nuevo.insertar(s); {if (true) return nuevo;}
         break;
       case idVar:
         i = jj_consume_token(idVar);
+                        nuevo.insertar(new Nodo(i.image,"idVar")); {if (true) return nuevo;}
+        break;
+      case cadenaDos:
+        i = jj_consume_token(cadenaDos);
+                            nuevo.insertar(new Nodo(i.image,"idVar")); {if (true) return nuevo;}
+        break;
+      case hora:
+        i = jj_consume_token(hora);
+                       nuevo.insertar(new Nodo(i.image,"idVar")); {if (true) return nuevo;}
+        break;
+      case fecha:
+        i = jj_consume_token(fecha);
                         nuevo.insertar(new Nodo(i.image,"idVar")); {if (true) return nuevo;}
         break;
       default:
@@ -174,6 +200,30 @@ public class parserXML implements parserXMLConstants {
     throw new Error("Missing return statement in function");
   }
 
+  static final public Nodo C() throws ParseException {
+ Nodo nuevo = new Nodo("C"); Nodo s; Token i;
+    try {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case id:
+        i = jj_consume_token(id);
+                     nuevo.insertar(new Nodo(i.image,"id")); {if (true) return nuevo;}
+        break;
+      default:
+        jj_la1[3] = jj_gen;
+                 {if (true) return null;}
+      }
+    } catch (ParseException e) {
+        Token t;
+    t = getNextToken();
+        if(t.kind==etqC){
+                {if (true) return nuevo;}
+        }
+        C();
+        {{if (true) return nuevo;}}
+    }
+    throw new Error("Missing return statement in function");
+  }
+
   static private boolean jj_initialized_once = false;
   /** Generated Token Manager. */
   static public parserXMLTokenManager token_source;
@@ -184,13 +234,13 @@ public class parserXML implements parserXMLConstants {
   static public Token jj_nt;
   static private int jj_ntk;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[3];
+  static final private int[] jj_la1 = new int[4];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x2,0x2c2,0x2c0,};
+      jj_la1_0 = new int[] {0x2,0x3af2,0x3af0,0x40,};
    }
 
   /** Constructor with InputStream. */
@@ -211,7 +261,7 @@ public class parserXML implements parserXMLConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 4; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -225,7 +275,7 @@ public class parserXML implements parserXMLConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 4; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -242,7 +292,7 @@ public class parserXML implements parserXMLConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 4; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -252,7 +302,7 @@ public class parserXML implements parserXMLConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 4; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -268,7 +318,7 @@ public class parserXML implements parserXMLConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 4; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -277,7 +327,7 @@ public class parserXML implements parserXMLConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 4; i++) jj_la1[i] = -1;
   }
 
   static private Token jj_consume_token(int kind) throws ParseException {
@@ -328,12 +378,12 @@ public class parserXML implements parserXMLConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[17];
+    boolean[] la1tokens = new boolean[21];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -342,7 +392,7 @@ public class parserXML implements parserXMLConstants {
         }
       }
     }
-    for (int i = 0; i < 17; i++) {
+    for (int i = 0; i < 21; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

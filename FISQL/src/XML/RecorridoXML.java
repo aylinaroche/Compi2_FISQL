@@ -1,12 +1,16 @@
 package XML;
 
+import BaseDeDatos.BaseDeDatos;
+import BaseDeDatos.RegistroDB;
 import BaseDeDatos.RegistroMaestro;
 import BaseDeDatos.RegistroObjeto;
 import BaseDeDatos.RegistroProcedure;
+import BaseDeDatos.RegistroTabla;
 import BaseDeDatos.RegistroUsuario;
 import java.util.ArrayList;
 import USQL.Nodo;
 import USQL.Objetos.Parametro;
+import java.io.IOException;
 
 /**
  *
@@ -16,6 +20,7 @@ public class RecorridoXML {
 
     public static ArrayList parametros = new ArrayList();
     public static int tipo = 0;
+    public static String nombreTabla = "";
 
     public Object Recorrido(Nodo raiz) {
         Object result = null;
@@ -31,13 +36,13 @@ public class RecorridoXML {
                             result = Recorrido(raiz.hijos[0]);
                             ArrayList lista = new ArrayList();
                             lista.add(result);
-                            result = BaseDeDatos.BaseDeDatos.voltear(lista);
+                            result = BaseDeDatos.voltear(lista);
                             break;
                         case 2:
                             result = Recorrido(raiz.hijos[0]);
                             ArrayList lista2 = (ArrayList) Recorrido(raiz.hijos[1]);
                             lista2.add(result);
-                            result = BaseDeDatos.BaseDeDatos.voltear(lista2);
+                            result = BaseDeDatos.voltear(lista2);
                             break;
                     }
                     break;
@@ -74,6 +79,8 @@ public class RecorridoXML {
                                 case "campo":
                                 case "complemento":
                                 case "pass":
+                                case "foranea":
+                                case "atributo":
                                     result = Recorrido(raiz.hijos[1]);
                                     result = new Etq(raiz.hijos[0].texto, result);
                                     break;
@@ -143,23 +150,66 @@ public class RecorridoXML {
                                     ArrayList listaBD = (ArrayList) Recorrido(raiz.hijos[1]);
                                     try {
                                         Etq nombre = (Etq) listaBD.get(0);
+                                        Etq path = (Etq) listaBD.get(1);
                                         ArrayList atr = new ArrayList();
-                                        Etq src = (Etq) listaProc.get(listaProc.size() - 1);
-                                        if (listaProc.size() > 2) {
-                                            Etq l = (Etq) listaProc.get(1);
-                                            ArrayList lProc = (ArrayList) l.valor;
-                                            for (int i = 0; i < lProc.size(); i++) {
-                                                Etq e = (Etq) lProc.get(i);
-                                                Parametro p = new Parametro(e.nombre, e.valor.toString());
-                                                atr.add(p);
+
+                                        for (int i = 2; i < listaBD.size(); i++) {
+                                            Etq campo = (Etq) listaBD.get(i);
+                                            ArrayList atrib = (ArrayList) campo.valor;
+                                            Etq nomCampo = (Etq) atrib.get(0);
+                                            ArrayList comp = new ArrayList();
+                                            if (atrib.size() > 1) {
+                                                // Etq eComp = (Etq) atrib.get(1);
+                                                for (int j = 1; j < atrib.size(); j++) {
+                                                    Etq eC = (Etq) atrib.get(j);
+                                                    if (eC.valor instanceof ArrayList) {
+                                                        ArrayList foranea = (ArrayList) eC.valor;
+                                                        Etq l = (Etq) foranea.get(0);
+                                                        ArrayList foran = (ArrayList) l.valor;
+                                                        Etq n = (Etq) foran.get(0);
+                                                        Etq a = (Etq) foran.get(1);
+                                                        Parametro f = new Parametro(n.valor.toString(), a.valor.toString());
+                                                        comp.add(f);
+                                                    } else {
+                                                        comp.add(eC.valor.toString());
+                                                    }
+                                                }
+
                                             }
+
+                                            Parametro p = new Parametro(nomCampo.valor.toString(), nomCampo.nombre, comp);
+                                            atr.add(p);
                                         }
-                                        RegistroProcedure.agregarProcedure(nombre.valor.toString(), src.valor.toString(), atr, "void");
-                                    } catch (Exception e) {
+                                        RegistroDB.agregarTablaXML(nombre.valor.toString(), atr);
+                                        nombreTabla = nombre.valor.toString();
+                                        BaseDeDatos.cargar(path.valor.toString());
+//
+                                    } catch (IOException e) {
                                         System.out.println("Error en XML obj = " + e);
                                     }
                                     break;
+                                case "procedure":
+                                case "object":
+                                    break;
+                                // REGISTRO
+                                case "registro":
+                                    ArrayList listaRegis = (ArrayList) Recorrido(raiz.hijos[1]);
+                                    try {
+                                        ArrayList atr = new ArrayList();
+
+                                        for (int i = 0; i < listaRegis.size(); i++) {
+                                            Etq e = (Etq) listaRegis.get(i);
+                                            atr.add(e.valor);
+
+                                        }
+                                        RegistroTabla.insertarDesdeXML(nombreTabla, atr);
+                                    } catch (Exception e) {
+                                        System.out.println("Error en XML registro = " + e);
+                                    }
+                                    break;
                                 default:
+                                    result = Recorrido(raiz.hijos[1]);
+                                    result = new Etq(raiz.hijos[0].texto, result);
                                     break;
                             }
 
@@ -183,6 +233,11 @@ public class RecorridoXML {
                                 result = cadena;
                             }
                             break;
+                        case 2:
+                            if ("id".equals(raiz.hijos[0].tipo)) {
+                                result = raiz.hijos[0].texto + " nulo";
+                                break;
+                            }
                     }
                     break;
             }
@@ -196,12 +251,6 @@ class Etq {
 
     String nombre;
     Object valor;
-    ArrayList lista;
-
-    public Etq(String n, ArrayList l) {
-        this.nombre = n;
-        this.lista = l;
-    }
 
     public Etq(String n, Object v) {
         this.nombre = n;

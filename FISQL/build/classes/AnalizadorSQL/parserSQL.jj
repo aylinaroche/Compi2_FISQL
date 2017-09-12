@@ -644,7 +644,7 @@ Nodo SELECCIONAR():
 {
 try{
 	(	l=LISTACAMPOS()<de> i=<id> d=DONDE() o=ORDENAR(){nuevo.insertar(l);nuevo.insertar(new Nodo("de")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); }
-	|   <por><de> i=<id> d=DONDE() o=ORDENAR() {nuevo.insertar(new Nodo("por de"));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); })
+	|   <por><de> i=<id> d=DONDE() o=ORDENAR() {nuevo.insertar(new Nodo("*")); nuevo.insertar(new Nodo("de"));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); })
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;

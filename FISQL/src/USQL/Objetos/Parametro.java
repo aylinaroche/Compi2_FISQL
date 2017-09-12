@@ -6,7 +6,7 @@ import java.util.ArrayList;
  *
  * @author aylin
  */
-public class Parametro {
+public class Parametro implements Comparable<Parametro> {
 
     public String nombre;
     public String tipo;
@@ -48,6 +48,16 @@ public class Parametro {
             System.out.println(" no se puede duplicar");
         }
         return obj;
+    }
+
+    @Override
+    public int compareTo(Parametro p) {
+        if (p.valor != null && valor != null) {
+            String val = valor.toString();
+            String pVal = p.valor.toString();
+            return val.compareTo(pVal);
+        }
+        return 0;
     }
 
 }
