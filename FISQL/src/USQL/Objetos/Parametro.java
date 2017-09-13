@@ -1,6 +1,9 @@
 package USQL.Objetos;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *
@@ -52,10 +55,29 @@ public class Parametro implements Comparable<Parametro> {
 
     @Override
     public int compareTo(Parametro p) {
-        if (p.valor != null && valor != null) {
-            String val = valor.toString();
-            String pVal = p.valor.toString();
-            return val.compareTo(pVal);
+
+        if (valor != null && p.valor != null) {
+            String val1 = "";
+            String val2 = "";
+            if (p.valor instanceof Date && valor instanceof Date) {
+                DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
+                String fecha1 = df.format((Date) valor);
+                String fecha2 = df.format((Date) p.valor);
+                try {
+                    Date f1 = df.parse(fecha1);
+                    Date f2 = df.parse(fecha2);
+                    long fechaIni = f1.getTime();
+                    long fechaFin = f2.getTime();
+                    val1 = String.valueOf(fechaIni);
+                    val2 = String.valueOf(fechaFin);
+                } catch (ParseException ex) {
+                }
+
+            } else {
+                val1 = valor.toString();
+                val2 = p.valor.toString();
+            }
+            return val1.compareTo(val2);
         }
         return 0;
     }

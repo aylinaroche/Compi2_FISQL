@@ -1,7 +1,6 @@
 package fisql;
 
 import AnalizadorSQL.*;
-import AnalizadorXML.parserXML;
 import BaseDeDatos.RegistroDB;
 import BaseDeDatos.RegistroMaestro;
 import BaseDeDatos.RegistroObjeto;
@@ -9,10 +8,7 @@ import BaseDeDatos.RegistroProcedure;
 import BaseDeDatos.RegistroTabla;
 import BaseDeDatos.RegistroUsuario;
 import USQL.*;
-import XML.RecorridoXML;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -22,25 +18,28 @@ public class FISQL {
 
     //public static parserSQL parser = null;
     public static void main(String[] args) throws ParseException, IOException, AnalizadorXML.ParseException {
-        try {
-            Variables.pilaAmbito.push("Global");
+        // try {
+        Variables.pilaAmbito.push("Global");
 //            RegistroMaestro m = new RegistroMaestro();
 //            m.cargarBD();
 //            RegistroUsuario u = new RegistroUsuario();
 //            u.cargarBD();
 //
-            Nodo nodo = parserSQL.compilar(textoSQL1());
-            RecorridoSQL r = new RecorridoSQL();
-            r.Recorrido(nodo);
+//            Nodo nodo = parserSQL.compilar(textoSQL1());
+//            RecorridoSQL r = new RecorridoSQL();
+//            r.Recorrido(nodo);
 //            Nodo nodo = parserXML.compilar(textoXML());
 //            RecorridoXML r = new RecorridoXML();
 //            r.Recorrido(nodo);
+        Interfaz i = new Interfaz();
+        i.setVisible(true);
+        i.textCodigo.setText(textoSQL1());
 
-            imprimirDatos();
-            BaseDeDatos.BaseDeDatos.crearArchivos();
-        } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(FISQL.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        //imprimirDatos();
+        //       BaseDeDatos.BaseDeDatos.crearArchivos();
+//        } catch (CloneNotSupportedException ex) {
+//            Logger.getLogger(FISQL.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }
 
     public static String textoSQL1() {
@@ -51,15 +50,15 @@ public class FISQL {
                 + "\n"
                 + "USAR Proyecto1;"
                 + "\n"
-                + "crear tabla Curso ("
-                + "     INTEGER id Llave_Primaria Autoincrementable, "
+                + "crear tabla Curso (\n"
+                + "     INTEGER id Llave_Primaria Autoincrementable, \n"
                 + "     TEXT Nombre No Nulo);\n"
                 + "\n"
-                + "crear tabla Estudiante ("
-                + "     INTEGER id Llave_Primaria Autoincrementable, "
-                + "     TEXT Nombre No Nulo, "
-                + "     DATE fh_nac No Nulo, "
-                + "     BOOL trabaja,"
+                + "crear tabla Estudiante (\n"
+                + "     INTEGER id Llave_Primaria Autoincrementable, \n"
+                + "     TEXT Nombre No Nulo, \n"
+                + "     DATE fh_nac No Nulo,\n "
+                + "     BOOL trabaja,\n"
                 + "     INTEGER curso Llave_Foranea Curso id nulo);\n"
                 + "\n"
                 //                + "crear objeto Empresa (INTEGER codigo, TEXT nombre, TEXT telefono);\n"
@@ -97,23 +96,25 @@ public class FISQL {
                 + "INSERTAR EN TABLA Curso (\"Lenguajes\");\n"
                 + "INSERTAR EN TABLA Curso (\"Matematica\");\n"
                 + ""
-                + "INSERTAR EN TABLA estudiante (\"Juan\", 10-10-1994, 0,1);\n"
-                + "INSERTAR EN TABLA estudiante (\"Maria\", 10-10-1994, 0,1);\n"
-                + "INSERTAR EN TABLA estudiante (\"Elisa\", 10-10-1994, 0,1);\n"
-                + "INSERTAR EN TABLA estudiante (\"Diana\", 10-10-1994, 1,1);\n"
-                + "INSERTAR EN TABLA estudiante (\"Sucely\", 10-10-1994, 1,1);\n"
-                + "\n"
+                + "INSERTAR EN TABLA estudiante (\"Juan\", '10-10-1994', 0,1);\n"
+                + "INSERTAR EN TABLA estudiante (\"Maria\", '10-10-1996', 0,1);\n"
+                + "INSERTAR EN TABLA estudiante (\"Elisa\", '20-10-1994', 0,1);\n"
+                + "INSERTAR EN TABLA estudiante (\"Diana\", '10-01-1994', 1,1);\n"
+                + "INSERTAR EN TABLA estudiante (\"Sucely\", '11-10-1994', 1,1);\n"
+                // + "\n"
                 // + "INSERTAR EN TABLA estudiante (Nombre, curso, fh_nac) VALORES (\"Jose Luis Figueroa\", 2, 10-10-1994);\n"
-                + "\n"
-                + "ACTUALIZAR TABLA estudiante (nombre, trabaja) VALORES (\"Puan\",1) DONDE nombre == \"Juan\" &&\n"
-                + "trabaja == 0;\n"
+                //+ "\n"
+                //                + "ACTUALIZAR TABLA estudiante (nombre, trabaja) VALORES (\"Puan\",1)"
+                //                + " DONDE nombre == \"Juan\" && trabaja == 0;\n"
+                //                + ""
+                //                      + "ACTUALIZAR TABLA estudiante (curso) VALORES (2);\n"
+                //                + "\n"
+                //  + "SELECCIONAR nombre, fh_nac DE estudiante DONDE id < 10;\n"
                 + ""
-                + "ACTUALIZAR TABLA estudiante (curso) VALORES (2);\n"
-                + "\n"
-//                + "	SELECCIONAR curso.nombre, estudiante.nombre \n"
-//                + "	DE curso, estudiante \n"
-//                + "	DONDE estudiante.curso = curso.id;"
-                //                + "BORRAR EN TABLA estudiante DONDE nombre == \"Jose Luis Martinez\"\n"
+                                + "	SELECCIONAR curso.nombre, estudiante.nombre \n"
+                + "	DE curso, estudiante \n"
+                + "	DONDE estudiante.curso == curso.id;"
+                // + "BORRAR EN TABLA estudiante DONDE nombre == \"Maria\";\n"
                 //                + "&& trabaja == 0;\n"
                 //                + "BORRAR EN TABLA estudiante;\n"
                 //                + "\n"
@@ -123,8 +124,8 @@ public class FISQL {
                 //                + "asignacion.id_estudiante;\n"
                 //                + "SELECCIONAR nombre, fh_nac DE estudiante DONDE id < 10;\n"
                 // + "SELECCIONAR * DE estudiante;\n"
-                //                + "SELECCIONAR * DE estudiante DONDE id < 10 && trabaja == \"nulo\"  ORDENAR POR\n"
-                //                + "nombre desc;\n"
+                + "SELECCIONAR * DE estudiante DONDE id < 10  ORDENAR POR\n"
+                + "fh_nac desc;\n"
                 //                + "SELECCIONAR nombre, fh_nac DE estudiante;"
                 //                + "SELECCIONAR nombre, fh_nac DE estudiante DONDE id > 3 ORDENAR POR\n"
                 //                + "id asc;\n"
@@ -191,9 +192,12 @@ public class FISQL {
                 //                + "\n"
                 //                + "	imprimir(\"Fecha = \"+ FECHA());\n"
                 //                + "	imprimir(\"Hora = \"+ FECHA_HORA());\n"
-                //                + "	@fecha = FECHA();\n"
-                //                + "	@fecha_h = FECHA_HORA();\n"
-                //                + "\n"
+                //                + "	DECLARAR @fecha1 Date = '10-02-2010';\n"
+                //                + "	DECLARAR @fecha2 Date = '20-02-2010';\n"
+                //                + "	DECLARAR @fecha3 Date = '10-02-2011';\n"
+                //                + "	SI( @fecha1 > @fecha2 || @fecha1 < @fecha2 ||@fecha1 >= @fecha2 ||@fecha1 <= @fecha2|| @fecha1 ==  @fecha2  ||@fecha1 != @fecha2   ){\n"
+                //                + "	imprimir(\"Fecha = \"+ FECHA());\n"
+                //                + "	}\n"
                 //                + "	BACKUP USQLDUMP Proyecto1 Proyecto1_backup;\n"
                 //                + "	BACKUP COMPLETO Proyecto1 Proyecto1_backup2;\n"
                 //                + "\n"

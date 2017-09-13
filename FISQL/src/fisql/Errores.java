@@ -20,6 +20,7 @@ public class Errores {
         e.columna = c;
         erroresSQL.add(e);
         System.out.println("-> " + t + " : " + l + " , " + d + " , " + c);
+        BaseDeDatos.BaseDeDatos.listaImprimir.add(" > " + d);
     }
 
     public static void imprimirError() {

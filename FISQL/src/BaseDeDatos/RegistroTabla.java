@@ -84,26 +84,10 @@ public class RegistroTabla {
             Errores.agregarErrorSQL("BD", "Error Semantico", "No se ha indicado una base de datos", 0, 0);
             return;
         }
-
         //Obtengo encabezado
-        Encabezado cabeza = null;
-        for (int j = 0; j < RegistroDB.listaTabla.size(); j++) {
-            Encabezado cab = RegistroDB.listaTabla.get(j);
-            if (cab.nombre.equalsIgnoreCase(nombre)) {
-                cabeza = cab;
-                break;
-            }
-        }
-
+        Encabezado cabeza = obtenerEncabezado(nombre);
         // Obtengo tabla
-        Tabla tabla = null;
-        for (int i = 0; i < listaRegistro.size(); i++) {
-            Tabla t = listaRegistro.get(i);
-            if (nombre.equalsIgnoreCase(t.nombre)) {
-                tabla = t;
-                break;
-            }
-        }
+        Tabla tabla = obtenerTabla(nombre);
         if (cabeza == null || tabla == null) {
             Errores.agregarErrorSQL(nombre, "Error Semantico", "No existe la tabla " + nombre, 0, 0);
             return;
@@ -194,6 +178,7 @@ public class RegistroTabla {
 
         }
         tabla.registros.add(new Registro(valores));
+        BaseDeDatos.listaImprimir.add(" * Se ha insertado en la tabla \"" + nombre + "\" correctamente.");
     }
 
     public ArrayList agregarIncrementar(int posicion, ArrayList lista, int num) {
@@ -245,23 +230,9 @@ public class RegistroTabla {
 
     public static void insertarDesdeXML(String nombre, ArrayList atributos) {
         //Obtengo encabezado
-        Encabezado cabeza = null;
-        for (int j = 0; j < RegistroDB.listaTabla.size(); j++) {
-            Encabezado cab = RegistroDB.listaTabla.get(j);
-            if (cab.nombre.equalsIgnoreCase(nombre)) {
-                cabeza = cab;
-                break;
-            }
-        }
+        Encabezado cabeza = obtenerEncabezado(nombre);
         // Obtengo tabla
-        Tabla tabla = null;
-        for (int i = 0; i < listaRegistro.size(); i++) {
-            Tabla t = listaRegistro.get(i);
-            if (nombre.equalsIgnoreCase(t.nombre)) {
-                tabla = t;
-                break;
-            }
-        }
+        Tabla tabla = obtenerTabla(nombre);
         if (cabeza == null || tabla == null) {
             Errores.agregarErrorSQL(nombre, "Error Semantico", "No existe la tabla " + nombre, 0, 0);
             return;
@@ -286,23 +257,9 @@ public class RegistroTabla {
             return lista;
         }
         //Obtengo encabezado
-        Encabezado cabeza = null;
-        for (int j = 0; j < RegistroDB.listaTabla.size(); j++) {
-            Encabezado cab = RegistroDB.listaTabla.get(j);
-            if (cab.nombre.equalsIgnoreCase(nombreTabla)) {
-                cabeza = cab;
-                break;
-            }
-        }
+        Encabezado cabeza = obtenerEncabezado(nombreTabla);
         // Obtengo tabla
-        Tabla tabla = null;
-        for (int i = 0; i < listaRegistro.size(); i++) {
-            Tabla t = listaRegistro.get(i);
-            if (nombreTabla.equalsIgnoreCase(t.nombre)) {
-                tabla = t;
-                break;
-            }
-        }
+        Tabla tabla = obtenerTabla(nombreTabla);
         if (cabeza == null || tabla == null) {
             Errores.agregarErrorSQL(nombreTabla, "Error Semantico", "No existe la tabla " + nombreTabla, 0, 0);
             return lista;
@@ -448,24 +405,203 @@ public class RegistroTabla {
         return lista;
     }
 
+    public static ArrayList seleccionarVarias(ArrayList listaAtr, ArrayList listaTablas, Nodo donde, ArrayList ordenar) {
+        ArrayList lista = new ArrayList();
+        if ("".equals(BaseDeDatos.DBActual)) {
+            Errores.agregarErrorSQL("BD", "Error Semantico", "No se ha indicado una base de datos", 0, 0);
+            return lista;
+        }
+
+        ArrayList actual = new ArrayList();
+        String nombre = (String) listaTablas.get(0);
+
+        actual = fusion(nombre);
+
+        for (int i = 1; i < listaTablas.size(); i++) {
+            ArrayList nueva = fusion((String) listaTablas.get(i));
+            actual = productoCartesiano(actual, nueva);
+        }
+
+//        if (tipo instanceof ArrayList) {
+//            ArrayList nombreAtr = (ArrayList) tipo;
+//            ArrayList nombres = new ArrayList();
+//            //lista.add(nombreAtr);
+//            // Posiciones de las cabezas
+//            ArrayList<Integer> posicion = new ArrayList();
+//            for (int i = 0; i < nombreAtr.size(); i++) {
+//                String nombre = (String) nombreAtr.get(i);
+//                Parametro m = new Parametro(nombre, nombre);
+//                for (int j = 0; j < cabeza.campos.size(); j++) {
+//                    Parametro p = cabeza.campos.get(j);
+//                    if (p.nombre.equalsIgnoreCase(nombre)) {
+//                        posicion.add(j);
+//                    }
+//                }
+//                nombres.add(m);
+//            }
+//            lista.add(nombres);
+//
+//            for (int i = 0; i < tabla.registros.size(); i++) {
+//                Registro registro = tabla.registros.get(i);
+//                if (donde != null) {
+//                    Variables.pilaAmbito.push("donde");
+//                    Variables.nivelAmbito++;
+//
+//                    for (int j = 0; j < registro.valores.size(); j++) {
+//                        Parametro p = registro.valores.get(j);
+//                        Parametro c = cabeza.campos.get(j);
+//                        Variables.crearVariable(c.tipo, p.nombre, p.valor);
+//                    }
+//                    try {
+//                        RecorridoSQL r = new RecorridoSQL();
+//                        Object boolDonde = r.Recorrido(donde);
+//
+//                        if (boolDonde.toString().equalsIgnoreCase("true")) {
+//                            ArrayList val = new ArrayList();
+//                            for (int k = 0; k < posicion.size(); k++) {
+//                                Parametro p = registro.valores.get(posicion.get(k));
+//                                val.add(p);
+//                            }
+//                            lista.add(val);
+//                        }
+//
+//                    } catch (CloneNotSupportedException ex) {
+//                        System.out.println("Error en el nodo donde = " + ex);
+//                    }
+//                    Variables.eliminarVariables();
+//                    Variables.pilaAmbito.pop();
+//                    Variables.nivelAmbito--;
+//                } else {
+//                    ArrayList val = new ArrayList();
+//                    for (int k = 0; k < posicion.size(); k++) {
+//                        Parametro p = registro.valores.get(posicion.get(k));
+//                        val.add(p);
+//                    }
+//                    lista.add(val);
+//                }
+//            }
+//        }
+//
+//        if (!ordenar.isEmpty()) {
+//            try {
+//                String campo = (String) ordenar.get(0);
+//                String tipoOrdenar = (String) ordenar.get(1);
+//
+//                ArrayList<Parametro> aux = new ArrayList();
+//                int pos = 0;
+//                for (int i = 0; i < cabeza.campos.size(); i++) {
+//                    Parametro p = cabeza.campos.get(i);
+//                    if (p.nombre.equalsIgnoreCase(campo)) {
+//                        pos = i;
+//                        for (int j = 1; j < lista.size(); j++) {
+//                            ArrayList valores = (ArrayList) lista.get(j);
+//                            aux.add((Parametro) valores.get(i));
+//                        }
+//                        break;
+//                    }
+//                }
+//                if (tipoOrdenar.equalsIgnoreCase("asc")) {
+//                    Collections.sort(aux);
+//                } else {
+//                    Collections.sort(aux, Collections.reverseOrder());
+//                }
+//                ArrayList nueva = new ArrayList();
+//                nueva.add(lista.get(0));
+//
+//                for (int i = 0; i < aux.size(); i++) {
+//                    Parametro p = aux.get(i);
+//                    //System.out.println(p.valor);
+//                    for (int j = 1; j < lista.size(); j++) {
+//                        ArrayList valores = (ArrayList) lista.get(j);
+//                        Parametro v = (Parametro) valores.get(pos);
+//                        if (v.valor.toString().equalsIgnoreCase(p.valor.toString())) {
+//                            nueva.add(valores);
+//                        }
+//                    }
+//
+//                }
+//                //System.out.println("/////////////////////////////////");
+//
+//                lista.clear();
+//                lista = nueva;
+//            } catch (Exception e) {
+//                System.out.println("Error al ordenar = " + e);
+//            }
+//        }
+        imprimirSeleccionar(actual);
+        return actual;
+    }
+
+    public static ArrayList productoCartesiano(ArrayList tabla1, ArrayList tabla2) {
+        ArrayList lista = new ArrayList();
+        for (int i = 0; i < tabla1.size(); i++) {
+            ArrayList lista1 = (ArrayList) tabla1.get(i);
+
+            for (int j = 0; j < tabla2.size(); j++) {
+                ArrayList aux = new ArrayList();
+                ArrayList lista2 = (ArrayList) tabla2.get(i);
+                aux.addAll(lista1);
+                aux.addAll(lista2);
+
+                lista.add(aux);
+            }
+
+        }
+        return lista;
+    }
+
+    public static ArrayList fusion(String nombre) {
+        ArrayList lista = new ArrayList();
+
+        Encabezado cabeza = obtenerEncabezado(nombre);
+        Tabla tabla = obtenerTabla(nombre);
+        if (cabeza == null || tabla == null) {
+            Errores.agregarErrorSQL(nombre, "Error Semantico", "No existe la tabla " + nombre, 0, 0);
+            return lista;
+        }
+
+        nombre = nombre.toLowerCase();
+
+        ArrayList listaEnc = new ArrayList();
+        for (int i = 0; i < cabeza.campos.size(); i++) {
+            Parametro c = cabeza.campos.get(i);
+            Parametro p = new Parametro(nombre + c.nombre, nombre + c.nombre);
+            listaEnc.add(p);
+        }
+        lista.add(listaEnc);
+        for (int i = 0; i < tabla.registros.size(); i++) {
+            Registro r = tabla.registros.get(i);
+            lista.add(r.valores);
+        }
+        return lista;
+    }
+
     public static void imprimirSeleccionar(ArrayList lista) {
 
         ArrayList cab = (ArrayList) lista.get(0);
+        String cadena = "";
         for (int j = 0; j < cab.size(); j++) {
             Parametro p = (Parametro) cab.get(j);
             System.out.print(p.nombre + "           ");
+            cadena += p.nombre + "           ";
         }
+        BaseDeDatos.listaImprimir.add(cadena);
         System.out.println("");
+        cadena = "";
         for (int i = 1; i < lista.size(); i++) {
             ArrayList reg = (ArrayList) lista.get(i);
 
             for (int j = 0; j < reg.size(); j++) {
                 Parametro p = (Parametro) reg.get(j);
                 System.out.print(p.valor.toString() + "        ");
+                cadena += p.valor.toString() + "        ";
             }
             System.out.println("");
+            BaseDeDatos.listaImprimir.add(cadena);
+            cadena = "";
         }
         System.out.println("");
+        BaseDeDatos.listaImprimir.add("");
         System.out.println(" *************************************** ");
 
     }
@@ -509,10 +645,21 @@ public class RegistroTabla {
                     Object boolDonde = r.Recorrido(donde);
 
                     if (boolDonde.toString().equalsIgnoreCase("true")) {
-                        ArrayList val = new ArrayList();
                         for (int k = 0; k < posicion.size(); k++) {
                             Parametro p = registro.valores.get(posicion.get(k));
-                            val.add(p);
+                            //Verifica si es foranea
+                            Parametro cab = cabeza.campos.get(posicion.get(k));
+                            for (int j = 0; j < cab.complemento.size(); j++) {
+                                Object obj = cab.complemento.get(j);
+                                if (obj instanceof Parametro) { //Si es foranea
+                                    Parametro pForanea = (Parametro) obj;
+                                    if (!verificarForanea(pForanea.tipo, pForanea.nombre, listaValores.get(k))) {
+                                        Errores.agregarErrorSQL(listaValores.get(k).toString(), "Error Semantico", "Ningun valor coincide con la llave foranea", j, j);
+                                        return;
+                                    }
+                                }
+                            }
+                            p.valor = listaValores.get(k);
                         }
                     }
 
@@ -525,11 +672,23 @@ public class RegistroTabla {
             } else {
                 for (int k = 0; k < posicion.size(); k++) {
                     Parametro p = registro.valores.get(posicion.get(k));
+                    //Verifica si es foranea
+                    Parametro cab = cabeza.campos.get(posicion.get(k));
+                    for (int j = 0; j < cab.complemento.size(); j++) {
+                        Object obj = cab.complemento.get(j);
+                        if (obj instanceof Parametro) { //Si es foranea
+                            Parametro pForanea = (Parametro) obj;
+                            if (!verificarForanea(pForanea.tipo, pForanea.nombre, listaValores.get(k))) {
+                                Errores.agregarErrorSQL(listaValores.get(k).toString(), "Error Semantico", "Ningun valor coincide con la llave foranea", j, j);
+                                return;
+                            }
+                        }
+                    }
                     p.valor = listaValores.get(k);
                 }
             }
-
         }
+        BaseDeDatos.listaImprimir.add(" * Se ha actualizado en la tabla \"" + nombreTabla + "\" correctamente.");
     }
 
     public static Encabezado obtenerEncabezado(String nombreTabla) {
@@ -551,4 +710,67 @@ public class RegistroTabla {
         }
         return null;
     }
+
+    public static void borrarEnTabla(String nombreTabla, Nodo donde) {
+        if ("".equals(BaseDeDatos.DBActual)) {
+            Errores.agregarErrorSQL("BD", "Error Semantico", "No se ha indicado una base de datos", 0, 0);
+            return;
+        }
+        Encabezado cabeza = obtenerEncabezado(nombreTabla);
+        Tabla tabla = obtenerTabla(nombreTabla);
+        if (cabeza == null || tabla == null) {
+            Errores.agregarErrorSQL(nombreTabla, "Error Semantico", "No existe la tabla " + nombreTabla, 0, 0);
+            return;
+        }
+        for (int i = 0; i < tabla.registros.size(); i++) {
+            Registro registro = tabla.registros.get(i);
+            if (donde != null) {
+                Variables.pilaAmbito.push("donde");
+                Variables.nivelAmbito++;
+
+                for (int j = 0; j < registro.valores.size(); j++) {
+                    Parametro p = registro.valores.get(j);
+                    Parametro c = cabeza.campos.get(j);
+                    Variables.crearVariable(c.tipo, p.nombre, p.valor);
+                }
+                try {
+                    RecorridoSQL r = new RecorridoSQL();
+                    Object boolDonde = r.Recorrido(donde);
+
+                    if (boolDonde.toString().equalsIgnoreCase("true")) {
+                        tabla.registros.remove(i);
+                        BaseDeDatos.listaImprimir.add(" * Se ha borrado en la tabla \"" + nombreTabla + "\" correctamente.");
+                        return;
+                    }
+
+                } catch (CloneNotSupportedException ex) {
+                    System.out.println("Error en el nodo donde = " + ex);
+                }
+                Variables.eliminarVariables();
+                Variables.pilaAmbito.pop();
+                Variables.nivelAmbito--;
+            } else {
+                tabla.registros.remove(i);
+                BaseDeDatos.listaImprimir.add(" * Se ha borrado en la tabla \"" + nombreTabla + "\" correctamente.");
+                return;
+            }
+
+        }
+    }
+
+    public static boolean verificarForanea(String nombreTabla, String atributo, Object valor) {
+        Tabla tabla = obtenerTabla(nombreTabla);
+
+        for (int l = 0; l < tabla.registros.size(); l++) { //Busca en los registros
+            Registro r = tabla.registros.get(l);
+
+            Parametro p = r.valores.get(0);
+
+            if (p.valor.toString().equals(valor.toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

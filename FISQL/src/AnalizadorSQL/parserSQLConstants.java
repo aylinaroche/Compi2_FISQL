@@ -217,9 +217,11 @@ public interface parserSQLConstants {
   /** RegularExpression Id. */
   int hora = 103;
   /** RegularExpression Id. */
-  int comentarioSimple = 111;
+  int cadenaFecha = 104;
   /** RegularExpression Id. */
-  int comentarioMulti = 112;
+  int comentarioSimple = 112;
+  /** RegularExpression Id. */
+  int comentarioMulti = 113;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -330,6 +332,7 @@ public interface parserSQLConstants {
     "<cadena>",
     "<ffecha>",
     "<hora>",
+    "<cadenaFecha>",
     "\" \"",
     "\"\\r\\n\"",
     "\"\\t\"",

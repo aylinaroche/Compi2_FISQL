@@ -4,20 +4,22 @@ package USQL;
  *
  * @author aylin
  */
-import BaseDeDatos.RegistroProcedure;
+import BaseDeDatos.*;
 import fisql.Errores;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Operacion {
 
     public static Object resolverOperacion(Nodo nodo) throws CloneNotSupportedException {
         Object resultado = expresion(nodo);
-   //     System.out.println(">>>>> " + resultado);
+        //     System.out.println(">>>>> " + resultado);
         return resultado;
     }
 
@@ -57,14 +59,8 @@ public class Operacion {
                                 return true;
                             case "falso":
                                 return false;
-                            case "fecha":
-                                SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy");
-                                Date fecha = null;
-                                try {
-                                    fecha = formato.parse(dato);
-                                } catch (ParseException ex) {
-                                    Errores.agregarErrorSQL(dato, "Error Semantico", "Formato de fecha incorrecto", 0, 0);
-                                }
+                            case "cadenaFecha":
+                                Date fecha = BaseDeDatos.StringToDate(dato.replace("'", ""));
                                 return fecha;
                             case "nulo":
                                 return "nulo";
@@ -76,17 +72,23 @@ public class Operacion {
                 break;
             case 2:
                 Object F1 = "";
-                if (nodo.hijos[1].texto.equals("LLAMADA")) {
-                    RecorridoSQL r = new RecorridoSQL();
-                    Object result = r.Recorrido(nodo.hijos[1]);
-                    if (nodo.hijos[1].hijos[0].texto.equals("(")) {
-                        RegistroProcedure p = new RegistroProcedure();
-                        result = p.ejecutarProcedure(nodo.hijos[0].texto, (ArrayList) result);
+                if (nodo.hijos[0].tipo.equalsIgnoreCase("var")) {
+                    if (nodo.hijos[1].texto.equals("LLAMADA")) {
+                        RecorridoSQL r = new RecorridoSQL();
+                        Object result = r.Recorrido(nodo.hijos[1]);
+                        if (nodo.hijos[1].hijos[0].texto.equals("(")) {
+                            RegistroProcedure p = new RegistroProcedure();
+                            result = p.ejecutarProcedure(nodo.hijos[0].texto, (ArrayList) result);
 
+                        } else {
+                            result = Variables.obtenerValorAtributo(nodo.hijos[0].texto, result.toString());
+                        }
+                        return result;
                     } else {
-                        result = Variables.obtenerValorAtributo(nodo.hijos[0].texto, result.toString());
+                        RecorridoSQL r = new RecorridoSQL();
+                        Object result = r.Recorrido(nodo.hijos[1]);
+                        result = Variables.ObtenerValor(nodo.hijos[0].texto + result.toString());
                     }
-                    return result;
                 } else if (nodo.hijos[0].texto.equals("-")) {
                     F1 = expresion(nodo.hijos[1]);
                     try {
@@ -197,7 +199,6 @@ public class Operacion {
                                 //BOOL
                             } else if ((E1 instanceof Boolean) && (E2 instanceof Boolean)) {
                                 return (Boolean) E1 == true || (Boolean) E2 == true;
-
                             }
                             Errores.agregarErrorSQL("+", "Error Semantico", "Error al castear suma ", 0, 0);
                             return (Double) 0.0;
@@ -579,6 +580,9 @@ public class Operacion {
                                 return obtenerBoolean(E1) > obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return compararMayor((String) E1, (String) E2);
+                            } else if ((E1 instanceof Date) && (E1 instanceof Date)) {
+                                int n = BaseDeDatos.diferenciasDeFechas((Date) E1, (Date) E2);
+                                return n > 0;
                             } else {
                                 Errores.agregarErrorSQL(">", "Error Semantico", "Error al usar operador relacional >", 0, 0);
                                 return false;
@@ -667,7 +671,9 @@ public class Operacion {
                                 return obtenerBoolean(E1) < obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return compararMenor((String) E1, (String) E2);
-
+                            } else if ((E1 instanceof Date) && (E1 instanceof Date)) {
+                                int n = BaseDeDatos.diferenciasDeFechas((Date) E1, (Date) E2);
+                                return n < 0;
                             } else {
                                 Errores.agregarErrorSQL("<", "Error Semantico", "Error al usar operador relacional <", 0, 0);
                                 return false;
@@ -767,6 +773,9 @@ public class Operacion {
                                     return compararIgual((String) E1, (String) E2);
                                 }
                                 return comp;
+                            } else if ((E1 instanceof Date) && (E1 instanceof Date)) {
+                                int n = BaseDeDatos.diferenciasDeFechas((Date) E1, (Date) E2);
+                                return n >= 0;
                             } else {
                                 Errores.agregarErrorSQL(">=", "Error Semantico", "Error al usar operador relacional >=", 0, 0);
                                 return false;
@@ -867,6 +876,9 @@ public class Operacion {
                                     return compararIgual((String) E1, (String) E2);
                                 }
                                 return comp;
+                            } else if ((E1 instanceof Date) && (E1 instanceof Date)) {
+                                int n = BaseDeDatos.diferenciasDeFechas((Date) E1, (Date) E2);
+                                return n <= 0;
                             } else {
                                 Errores.agregarErrorSQL("<=", "Error Semantico", "Error al usar operador relacional <=", 0, 0);
                                 return false;
@@ -954,6 +966,9 @@ public class Operacion {
                                 return obtenerBoolean(E1) == obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return compararIgual((String) E1, (String) E2);
+                            } else if ((E1 instanceof Date) && (E1 instanceof Date)) {
+                                int n = BaseDeDatos.diferenciasDeFechas((Date) E1, (Date) E2);
+                                return n == 0;
                             } else {
                                 Errores.agregarErrorSQL("==", "Error Semantico", "Error al usar operador relacional ==", 0, 0);
                                 return false;
@@ -1042,6 +1057,9 @@ public class Operacion {
                                 return obtenerBoolean(E1) != obtenerBoolean(E2);
                             } else if ((E1 instanceof String && E2 instanceof String)) {
                                 return !compararIgual((String) E1, (String) E2);
+                            } else if ((E1 instanceof Date) && (E1 instanceof Date)) {
+                                int n = BaseDeDatos.diferenciasDeFechas((Date) E1, (Date) E2);
+                                return n != 0;
                             } else {
                                 Errores.agregarErrorSQL("!=", "Error Semantico", "Error al usar operador relacional !=", 0, 0);
                                 return false;
@@ -1084,12 +1102,28 @@ public class Operacion {
                         String dato2 = nodo.hijos[0].texto;
                         switch (dato2) {
                             case "FECHA":
-                                Date ahora = new Date();
-                                Calendar c = Calendar.getInstance();
-                                return c.getTime();
+                                DateFormat formatoF = new SimpleDateFormat("dd-MM-YYYY");
+                                String ff = formatoF.format(new Date());
+                                Date fecha = null;
+                                try {
+                                    fecha = formatoF.parse(ff);
+                                } catch (ParseException ex) {
+                                    Logger.getLogger(Operacion.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                //return fecha;
+                                return ff;
+
                             case "FECHA_HORA":
-                                Calendar c2 = Calendar.getInstance();
-                                return c2.getTime();
+                                DateFormat formatoH = new SimpleDateFormat("dd-MM-YYYY HH:mm:ss");
+                                String fh = formatoH.format(new Date());
+                                Date hora = null;
+                                try {
+                                    hora = formatoH.parse(fh);
+                                } catch (ParseException ex) {
+                                    Logger.getLogger(Operacion.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                //return hora;
+                                return fh;
                         }
                         break;
                     default: //(E)

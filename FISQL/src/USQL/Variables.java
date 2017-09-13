@@ -8,8 +8,6 @@ import USQL.Objetos.*;
 import fisql.Errores;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -60,7 +58,7 @@ public class Variables {
     public static void asignarValor(String nombre, Object valor) {
         for (int i = 0; i < listaVariables.size(); i++) {
             Variable s = (Variable) listaVariables.get(i);
-            if (s.nombre.equals(nombre) && pilaAmbito.contains(s.ambito)) {
+            if (s.nombre.equalsIgnoreCase(nombre) && pilaAmbito.contains(s.ambito)) {
                 s.valor = valor;
                 return;
             }
@@ -84,7 +82,7 @@ public class Variables {
         Variable s = null;
         for (int i = listaVariables.size() - 1; i >= 0; i--) {
             Variable sim = (Variable) listaVariables.get(i);
-            if (sim.nombre.equals(nombre.toLowerCase())) {
+            if (sim.nombre.equalsIgnoreCase(nombre.toLowerCase())) {
                 return sim.valor;
             }
         }
@@ -221,9 +219,7 @@ public class Variables {
                 }
             }
         }
-
         Errores.agregarErrorSQL(nombre, "Error Semantico", "No existe la variable", 0, 0);
-        return;
     }
 
 }

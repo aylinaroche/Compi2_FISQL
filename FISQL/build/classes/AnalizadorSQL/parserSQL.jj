@@ -166,10 +166,11 @@ TOKEN:
 	|	<decimal: (["0"-"9"])+"."(["0"-"9"])+ >
 	|	<id: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
 	|	<idVar: ["@"]["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])* >
-	|	<simbolo: "#"|"@"|"!"|"?"|"$"|"%"|"^"|"&"|"*"|"!"|"("|")"|"-"|"_"|"="|"<"|">"|"/"|"¿"|"¡"|"."|"["|"]">
+	|	<simbolo: "#"|"@"|"!"|"?"|"$"|"%"|"^"|"&"|"*"|":"|";"|"("|")"|"-"|"_"|"="|"<"|">"|"/"|"¿"|"¡"|"."|"["|"]">
 	|	<cadena: ("\"")(<entero>|<id>|<simbolo>|" "|"\t"|"\n")*("\"")>
 	|	<ffecha: (["0"-"9"]["0"-"9"]"-"["0"-"9"]["0"-"9"]"-"["0"-"9"]["0"-"9"]["0"-"9"]["0"-"9"])>
 	|	<hora: (["0"-"9"]["0"-"9"]":"["0"-"9"]["0"-"9"]":"["0"-"9"]["0"-"9"])>
+	|	<cadenaFecha: ("'")(<entero>|<id>|<simbolo>|" "|"\t")*("'")>
 	
 }
 SKIP:
@@ -551,10 +552,10 @@ try{
 }
 
 Nodo LISTACAMPOS():
-{Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s; Token i;}
+{Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s,v; Token i;}
 {
 try{
-		i=<id> s=LISTACAMPOSP(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+		i=<id> v=VAR()  s=LISTACAMPOSP(){nuevo.insertar(new Nodo(i.image)); nuevo.insertar(v); nuevo.insertar(s); }
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -568,10 +569,10 @@ try{
 }
 
 Nodo LISTACAMPOSP():
-{Nodo nuevo = new Nodo("LISTACAMPOSP"); Nodo s; Token i;}
+{Nodo nuevo = new Nodo("LISTACAMPOSP"); Nodo s,v; Token i;}
 {
 try{
-	(	<coma>i=<id> s=LISTACAMPOSP(){nuevo.insertar(new Nodo(","));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s); }
+	(	<coma>i=<id> v=VAR() s=LISTACAMPOSP(){nuevo.insertar(new Nodo(","));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(v); nuevo.insertar(s); }
 	|	{return null;})
 		{return nuevo;}
 }catch(ParseException e){
@@ -640,10 +641,10 @@ try{
 }
 
 Nodo SELECCIONAR():
-{Nodo nuevo = new Nodo("SELECCIONAR"); Nodo s,o,d,l; Token i;}
+{Nodo nuevo = new Nodo("SELECCIONAR"); Nodo s,o,d,l,c; Token i;}
 {
 try{
-	(	l=LISTACAMPOS()<de> i=<id> d=DONDE() o=ORDENAR(){nuevo.insertar(l);nuevo.insertar(new Nodo("de")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); }
+	(	l=LISTACAMPOS()<de> c=LISTACAMPOS() d=DONDE() o=ORDENAR(){nuevo.insertar(l);nuevo.insertar(new Nodo("de")); nuevo.insertar(c); nuevo.insertar(d); nuevo.insertar(o); }
 	|   <por><de> i=<id> d=DONDE() o=ORDENAR() {nuevo.insertar(new Nodo("*")); nuevo.insertar(new Nodo("de"));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o); })
 		{return nuevo;}
 }catch(ParseException e){
@@ -996,7 +997,7 @@ Nodo CONTAR():
 {Nodo nuevo = new Nodo("CONTAR"); Nodo s; Token i;}
 {
 try{
-		i=<contar><parentesisA><menormenor><seleccionar> s=SELECCIONAR()<mayormayor><parentesisC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(<<"));nuevo.insertar(s);nuevo.insertar(new Nodo(")>>"));}
+		i=<contar><parentesisA><menormenor><seleccionar> s=SELECCIONAR()<mayormayor><parentesisC>{nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(<< seleccionar"));nuevo.insertar(s);nuevo.insertar(new Nodo(")>>"));}
 		{return nuevo;}
 }catch(ParseException e){
 	Token t;
@@ -1224,6 +1225,7 @@ Nodo F():
 	| 	i=<nulo>{ nuevo.insertar(new Nodo(i.image));}
 	|	i=<idVar> s=LLAMADA(){ nuevo.insertar(new Nodo(i.image, "var")); nuevo.insertar(s);}
 	|	i=<cadena>{ nuevo.insertar(new Nodo(i.image, "cadena"));}
+	|	i=<cadenaFecha>{ nuevo.insertar(new Nodo(i.image, "cadenaFecha"));}
 	|	i=<decimal>{ nuevo.insertar(new Nodo(i.image, "decimal"));}
 	|	i=<ffecha> s =DATE(){ nuevo.insertar(new Nodo(i.image, "fecha")); nuevo.insertar(s);}
 	|	i=<verdadero>{ nuevo.insertar(new Nodo(i.image, "verdadero"));}

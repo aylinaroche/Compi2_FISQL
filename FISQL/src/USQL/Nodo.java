@@ -8,7 +8,7 @@ public class Nodo {
     public Nodo padre; 
     public Nodo hijos[];
     public String tipo; 
-    public Nodo heredado; 
+    //public Nodo heredado; 
 
     public Nodo(String texto) {
         this.texto = texto;

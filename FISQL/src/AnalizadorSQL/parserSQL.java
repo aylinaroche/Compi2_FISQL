@@ -845,11 +845,12 @@ public class parserSQL implements parserSQLConstants {
   }
 
   static final public Nodo LISTACAMPOS() throws ParseException {
- Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s; Token i;
+ Nodo nuevo = new Nodo("LISTACAMPOS"); Nodo s,v; Token i;
     try {
       i = jj_consume_token(id);
+      v = VAR();
       s = LISTACAMPOSP();
-                                        nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);
+                                                 nuevo.insertar(new Nodo(i.image)); nuevo.insertar(v); nuevo.insertar(s);
                  {if (true) return nuevo;}
     } catch (ParseException e) {
         Token t;
@@ -864,14 +865,15 @@ public class parserSQL implements parserSQLConstants {
   }
 
   static final public Nodo LISTACAMPOSP() throws ParseException {
- Nodo nuevo = new Nodo("LISTACAMPOSP"); Nodo s; Token i;
+ Nodo nuevo = new Nodo("LISTACAMPOSP"); Nodo s,v; Token i;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case coma:
         jj_consume_token(coma);
         i = jj_consume_token(id);
+        v = VAR();
         s = LISTACAMPOSP();
-                                              nuevo.insertar(new Nodo(","));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(s);
+                                                      nuevo.insertar(new Nodo(","));nuevo.insertar(new Nodo(i.image)); nuevo.insertar(v); nuevo.insertar(s);
         break;
       default:
         jj_la1[16] = jj_gen;
@@ -909,6 +911,7 @@ public class parserSQL implements parserSQLConstants {
       case idVar:
       case cadena:
       case ffecha:
+      case cadenaFecha:
         s = OPERACION();
         l = LISTAVALORESP();
                                                 nuevo.insertar(s); nuevo.insertar(l);
@@ -984,16 +987,16 @@ public class parserSQL implements parserSQLConstants {
   }
 
   static final public Nodo SELECCIONAR() throws ParseException {
- Nodo nuevo = new Nodo("SELECCIONAR"); Nodo s,o,d,l; Token i;
+ Nodo nuevo = new Nodo("SELECCIONAR"); Nodo s,o,d,l,c; Token i;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case id:
         l = LISTACAMPOS();
         jj_consume_token(de);
-        i = jj_consume_token(id);
+        c = LISTACAMPOS();
         d = DONDE();
         o = ORDENAR();
-                                                                 nuevo.insertar(l);nuevo.insertar(new Nodo("de")); nuevo.insertar(new Nodo(i.image)); nuevo.insertar(d); nuevo.insertar(o);
+                                                                          nuevo.insertar(l);nuevo.insertar(new Nodo("de")); nuevo.insertar(c); nuevo.insertar(d); nuevo.insertar(o);
         break;
       case por:
         jj_consume_token(por);
@@ -1558,7 +1561,7 @@ public class parserSQL implements parserSQLConstants {
       s = SELECCIONAR();
       jj_consume_token(mayormayor);
       jj_consume_token(parentesisC);
-                                                                                                          nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(<<"));nuevo.insertar(s);nuevo.insertar(new Nodo(")>>"));
+                                                                                                          nuevo.insertar(new Nodo(i.image)); nuevo.insertar(new Nodo("(<< seleccionar"));nuevo.insertar(s);nuevo.insertar(new Nodo(")>>"));
                  {if (true) return nuevo;}
     } catch (ParseException e) {
         Token t;
@@ -1691,6 +1694,7 @@ public class parserSQL implements parserSQLConstants {
       case idVar:
       case cadena:
       case ffecha:
+      case cadenaFecha:
         s = OPERACION();
                               nuevo.insertar(s);
         break;
@@ -2022,6 +2026,10 @@ public class parserSQL implements parserSQLConstants {
       i = jj_consume_token(cadena);
                             nuevo.insertar(new Nodo(i.image, "cadena"));
       break;
+    case cadenaFecha:
+      i = jj_consume_token(cadenaFecha);
+                                 nuevo.insertar(new Nodo(i.image, "cadenaFecha"));
+      break;
     case decimal:
       i = jj_consume_token(decimal);
                              nuevo.insertar(new Nodo(i.image, "decimal"));
@@ -2121,7 +2129,7 @@ public class parserSQL implements parserSQLConstants {
       jj_la1_2 = new int[] {0x204,0x0,0x4,0x4,0x0,0x10,0x0,0x0,0x20000000,0x0,0x20000000,0x0,0x0,0x0,0x0,0x0,0x20000000,0x10004020,0x20000000,0x0,0x8000,0x0,0x0,0x0,0x20000000,0x40000000,0x80000000,0x0,0x0,0x0,0x0,0x0,0x6000,0x4,0x0,0x0,0x10004020,0x80000020,0x8000,0x8000000,0x4000000,0x3cc0000,0x6000,0x18000,0x20000,0x10004020,0x0,};
    }
    private static void jj_la1_init_3() {
-      jj_la1_3 = new int[] {0xc,0x0,0xc,0xc,0x4,0x0,0x0,0x0,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x6f,0x0,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x23,0x8,0x0,0x0,0x0,0x0,0x6f,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x6f,0x80,};
+      jj_la1_3 = new int[] {0xc,0x0,0xc,0xc,0x4,0x0,0x0,0x0,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x16f,0x0,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x23,0x8,0x0,0x0,0x0,0x0,0x16f,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x16f,0x80,};
    }
 
   /** Constructor with InputStream. */
@@ -2259,7 +2267,7 @@ public class parserSQL implements parserSQLConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[113];
+    boolean[] la1tokens = new boolean[114];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -2282,7 +2290,7 @@ public class parserSQL implements parserSQLConstants {
         }
       }
     }
-    for (int i = 0; i < 113; i++) {
+    for (int i = 0; i < 114; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
